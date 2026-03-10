@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const paymentController_1 = require("../controllers/paymentController");
+const authMiddleware_1 = require("../middlewares/authMiddleware");
+const router = (0, express_1.Router)();
+router.use(authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("USER"));
+router.post("/initiate", paymentController_1.initiatePayment);
+router.post("/verify", paymentController_1.verifyPayment);
+router.post("/referral", paymentController_1.applyReferral);
+exports.default = router;
