@@ -7,8 +7,16 @@ const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER || "+1234567890";
 const client = twilio(accountSid, authToken);
 
 export const smsService = {
+    // Basic in-memory store for OTPs
+    // Structure: { mobile: { otp: string, expiresAt: number } }
+    mockOtpStore: {} as Record<string, { otp: string, expiresAt: number }>,
+
     async sendOTP(to: string, otp: string): Promise<boolean> {
         try {
+            this.mockOtpStore[to] = {
+                otp,
+                expiresAt: Date.now() + 10 * 60 * 1000 // 10 minutes from now
+            };
             // In a real environment without mock keys, this will hit Twilio's API
             if (accountSid === "AC00000000000000000000000000000000") {
                 console.log(`[Mock SMS] Sending OTP ${otp} to ${to}`);
@@ -27,5 +35,22 @@ export const smsService = {
             console.error("Error sending SMS via Twilio:", error);
             return false;
         }
+    },
+
+    async verifyOTP(to: string, otp: string): Promise<boolean> {
+        const record = this.mockOtpStore[to];
+        if (!record) return false;
+
+        if (Date.now() > record.expiresAt) {
+            delete this.mockOtpStore[to]; // cleanup
+            return false;
+        }
+
+        if (record.otp === otp) {
+            delete this.mockOtpStore[to]; // successful verification, consume it
+            return true;
+        }
+
+        return false;
     }
 };

@@ -1,0 +1,2700 @@
+{
+  "/api/admin/login": {
+    "post": {
+      "summary": "Admin Login",
+      "tags": [
+        "Admin"
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Login successful"
+        }
+      }
+    }
+  },
+  "/api/admin/vendors": {
+    "get": {
+      "summary": "Get all vendors",
+      "tags": [
+        "Admin"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "List of vendors"
+        }
+      }
+    }
+  },
+  "/api/admin/vendors/{vendorId}/approve": {
+    "put": {
+      "summary": "Approve a vendor",
+      "tags": [
+        "Admin"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "parameters": [
+        {
+          "in": "path",
+          "name": "vendorId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Vendor approved"
+        }
+      }
+    }
+  },
+  "/api/admin/kits": {
+    "post": {
+      "summary": "Create a new product kit",
+      "tags": [
+        "Admin"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "price": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "Kit created"
+        }
+      }
+    }
+  },
+  "/api/admin/purchases": {
+    "get": {
+      "summary": "Get vendor kit purchases",
+      "tags": [
+        "Admin"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "List of purchases"
+        }
+      }
+    }
+  },
+  "/api/auth/send-otp": {
+    "post": {
+      "summary": "Request an OTP for a mobile number",
+      "tags": [
+        "Auth"
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "mobile"
+              ],
+              "properties": {
+                "mobile": {
+                  "type": "string",
+                  "example": "1234567890",
+                  "description": "Mobile number of the user"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "OTP sent successfully"
+        },
+        "400": {
+          "description": "Mobile number required"
+        }
+      }
+    }
+  },
+  "/api/auth/verify-otp": {
+    "post": {
+      "summary": "Verify OTP and log in/register the user",
+      "tags": [
+        "Auth"
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "mobile",
+                "otp"
+              ],
+              "properties": {
+                "mobile": {
+                  "type": "string",
+                  "example": "1234567890"
+                },
+                "otp": {
+                  "type": "string",
+                  "example": "123456"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Login successful, returns JWT token and user profile"
+        },
+        "400": {
+          "description": "Invalid OTP"
+        }
+      }
+    }
+  },
+  "/api/auth/register-details": {
+    "post": {
+      "summary": "Complete registration after verifying OTP",
+      "description": "This endpoint requires a Bearer token received from /verify-otp.",
+      "tags": [
+        "Auth"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "name",
+                "password"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string"
+                },
+                "gender": {
+                  "type": "string",
+                  "enum": [
+                    "MALE",
+                    "FEMALE",
+                    "OTHER"
+                  ]
+                },
+                "photo": {
+                  "type": "string",
+                  "description": "URL to the user photo"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "User profile setup successfully"
+        },
+        "400": {
+          "description": "Email already in use or missing fields"
+        },
+        "401": {
+          "description": "Unauthorized, missing or invalid token"
+        }
+      }
+    }
+  },
+  "/api/auth/login": {
+    "post": {
+      "summary": "Login with email and password",
+      "tags": [
+        "Auth"
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "emailOrMobile",
+                "password"
+              ],
+              "properties": {
+                "emailOrMobile": {
+                  "type": "string",
+                  "description": "Enter either your registered email address or mobile number."
+                },
+                "password": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Login successful"
+        }
+      }
+    }
+  },
+  "/api/auth/logout": {
+    "post": {
+      "summary": "Logout user",
+      "tags": [
+        "Auth"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Logout successful"
+        }
+      }
+    }
+  },
+  "/api/auth/refresh-token": {
+    "post": {
+      "summary": "Refresh JWT token",
+      "tags": [
+        "Auth"
+      ],
+      "responses": {
+        "200": {
+          "description": "Token refreshed"
+        }
+      }
+    }
+  },
+  "/api/auth/social-login": {
+    "post": {
+      "summary": "Login via Social provider (Google/Facebook)",
+      "tags": [
+        "Auth"
+      ],
+      "responses": {
+        "200": {
+          "description": "Social login successful"
+        }
+      }
+    }
+  },
+  "/api/auth/change-password": {
+    "post": {
+      "summary": "Change user password",
+      "tags": [
+        "Auth"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "newPassword"
+              ],
+              "properties": {
+                "currentPassword": {
+                  "type": "string",
+                  "description": "Required if the user already has a password set."
+                },
+                "newPassword": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Password changed successfully"
+        },
+        "400": {
+          "description": "Invalid current password / Missing fields"
+        }
+      }
+    }
+  },
+  "/api/auth/forgot-password": {
+    "post": {
+      "summary": "Request password reset link / OTP",
+      "tags": [
+        "Auth"
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "email"
+              ],
+              "properties": {
+                "email": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Password reset link/OTP sent"
+        }
+      }
+    }
+  },
+  "/api/auth/reset-password": {
+    "post": {
+      "summary": "Reset password using OTP",
+      "tags": [
+        "Auth"
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "email",
+                "otp",
+                "newPassword"
+              ],
+              "properties": {
+                "email": {
+                  "type": "string"
+                },
+                "otp": {
+                  "type": "string"
+                },
+                "newPassword": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Password reset successfully"
+        },
+        "400": {
+          "description": "Invalid OTP"
+        }
+      }
+    }
+  },
+  "/api/auth/verify-email": {
+    "post": {
+      "summary": "Verify email address",
+      "description": "Send email without OTP to request code. Send email + OTP to verify.",
+      "tags": [
+        "Auth"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "email"
+              ],
+              "properties": {
+                "email": {
+                  "type": "string"
+                },
+                "otp": {
+                  "type": "string",
+                  "description": "Only required during verification step"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "OTP sent or Email verified"
+        },
+        "400": {
+          "description": "Invalid OTP or missing email"
+        }
+      }
+    }
+  },
+  "/api/auth/resend-otp": {
+    "post": {
+      "summary": "Resend OTP to mobile",
+      "tags": [
+        "Auth"
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "mobile"
+              ],
+              "properties": {
+                "mobile": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "OTP resent"
+        }
+      }
+    }
+  },
+  "/api/bookings/create": {
+    "post": {
+      "summary": "Create a scheduled booking",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "serviceId",
+                "scheduledDate",
+                "scheduledTime",
+                "address",
+                "lat",
+                "lng"
+              ],
+              "properties": {
+                "serviceId": {
+                  "type": "string"
+                },
+                "scheduledDate": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "scheduledTime": {
+                  "type": "string",
+                  "example": "14:30:00"
+                },
+                "address": {
+                  "type": "string"
+                },
+                "lat": {
+                  "type": "number"
+                },
+                "lng": {
+                  "type": "number"
+                },
+                "customerNotes": {
+                  "type": "string"
+                },
+                "addons": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "price": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "Booking created successfully in PENDING_PAYMENT state"
+        },
+        "400": {
+          "description": "Missing required fields"
+        }
+      }
+    }
+  },
+  "/api/bookings/instant": {
+    "post": {
+      "summary": "Create an immediate booking",
+      "description": "This will automatically set the scheduled date and time to NOW and trigger an instant search for nearby vendors upon payment.",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "serviceId",
+                "address",
+                "lat",
+                "lng"
+              ],
+              "properties": {
+                "serviceId": {
+                  "type": "string"
+                },
+                "address": {
+                  "type": "string"
+                },
+                "lat": {
+                  "type": "number"
+                },
+                "lng": {
+                  "type": "number"
+                },
+                "customerNotes": {
+                  "type": "string"
+                },
+                "addons": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "price": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "Instant Booking initialized in PENDING_PAYMENT state"
+        },
+        "400": {
+          "description": "Missing required fields"
+        }
+      }
+    }
+  },
+  "/api/bookings/estimate-price": {
+    "get": {
+      "summary": "Estimate booking price",
+      "description": "Returns a breakdown of the estimated cost for a given service and its addons",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "parameters": [
+        {
+          "in": "query",
+          "name": "serviceId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "The UUID of the service"
+        },
+        {
+          "in": "query",
+          "name": "addons",
+          "required": false,
+          "schema": {
+            "type": "string"
+          },
+          "description": "JSON stringified array of addons e.g. [{\"name\":\"Extra tools\",\"price\":50}]"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Price estimated successfully"
+        },
+        "400": {
+          "description": "Missing serviceId"
+        }
+      }
+    }
+  },
+  "/api/bookings/upcoming": {
+    "get": {
+      "summary": "Get upcoming active bookings for the user",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "List of upcoming bookings"
+        }
+      }
+    }
+  },
+  "/api/bookings/history": {
+    "get": {
+      "summary": "Get historical (completed/cancelled) bookings for the user",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "List of historical bookings"
+        }
+      }
+    }
+  },
+  "/api/bookings/status": {
+    "get": {
+      "summary": "Get the real-time status of a booking",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "parameters": [
+        {
+          "in": "query",
+          "name": "bookingId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Current status"
+        }
+      }
+    }
+  },
+  "/api/bookings/timeline": {
+    "get": {
+      "summary": "Get the chronological events of a booking's progress",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "parameters": [
+        {
+          "in": "query",
+          "name": "bookingId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Array of timeline events"
+        }
+      }
+    }
+  },
+  "/api/bookings/customer-notes": {
+    "get": {
+      "summary": "Fetch customer notes for a booking",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "parameters": [
+        {
+          "in": "query",
+          "name": "bookingId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Customer notes text"
+        }
+      }
+    }
+  },
+  "/api/bookings/vendor-location": {
+    "get": {
+      "summary": "Get the live location coordinates of the assigned vendor",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "parameters": [
+        {
+          "in": "query",
+          "name": "vendorId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "vendorId, lat, lng, and timestamp"
+        }
+      }
+    }
+  },
+  "/api/bookings/invoice": {
+    "get": {
+      "summary": "Generate a detailed invoice for a completed booking",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "parameters": [
+        {
+          "in": "query",
+          "name": "bookingId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Generated invoice object"
+        }
+      }
+    }
+  },
+  "/api/bookings/{id}": {
+    "get": {
+      "summary": "Get full booking details including service, addons, and timeline",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "The booking ID"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Full booking details"
+        },
+        "404": {
+          "description": "Booking not found"
+        }
+      }
+    }
+  },
+  "/api/bookings/confirm": {
+    "post": {
+      "summary": "Confirm a booking (called after successful payment)",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "bookingId"
+              ],
+              "properties": {
+                "bookingId": {
+                  "type": "string"
+                },
+                "transactionId": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Booking confirmed"
+        },
+        "400": {
+          "description": "Booking is not in PENDING_PAYMENT state"
+        }
+      }
+    }
+  },
+  "/api/bookings/cancel": {
+    "post": {
+      "summary": "Cancel an active booking",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "bookingId"
+              ],
+              "properties": {
+                "bookingId": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Booking cancelled"
+        },
+        "400": {
+          "description": "Booking cannot be cancelled in current state"
+        }
+      }
+    }
+  },
+  "/api/bookings/reschedule": {
+    "post": {
+      "summary": "Reschedule an active booking",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "bookingId",
+                "newDate",
+                "newTime"
+              ],
+              "properties": {
+                "bookingId": {
+                  "type": "string"
+                },
+                "newDate": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "newTime": {
+                  "type": "string",
+                  "example": "16:00:00"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Booking rescheduled"
+        },
+        "400": {
+          "description": "Cannot reschedule booking in its current state"
+        }
+      }
+    }
+  },
+  "/api/bookings/reassign-vendor": {
+    "post": {
+      "summary": "Clear the current vendor and look for a new one",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "bookingId"
+              ],
+              "properties": {
+                "bookingId": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Vendor reassigned"
+        }
+      }
+    }
+  },
+  "/api/bookings/rebook": {
+    "post": {
+      "summary": "Quickly create a new booking using previous booking details",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "previousBookingId",
+                "scheduledDate",
+                "scheduledTime"
+              ],
+              "properties": {
+                "previousBookingId": {
+                  "type": "string"
+                },
+                "scheduledDate": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "scheduledTime": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "New booking initialized"
+        }
+      }
+    }
+  },
+  "/api/bookings/assign-vendor": {
+    "post": {
+      "summary": "Assign a specific vendor to a CONFIRMED booking",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "bookingId",
+                "vendorId"
+              ],
+              "properties": {
+                "bookingId": {
+                  "type": "string"
+                },
+                "vendorId": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Vendor assigned"
+        },
+        "400": {
+          "description": "Booking is not CONFIRMED"
+        }
+      }
+    }
+  },
+  "/api/bookings/en-route": {
+    "post": {
+      "summary": "Mark the vendor as EN ROUTE to the customer",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "bookingId"
+              ],
+              "properties": {
+                "bookingId": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Marked as en route"
+        }
+      }
+    }
+  },
+  "/api/bookings/arrived": {
+    "post": {
+      "summary": "Mark the vendor as ARRIVED at the customer location",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "bookingId"
+              ],
+              "properties": {
+                "bookingId": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Marked as arrived"
+        }
+      }
+    }
+  },
+  "/api/bookings/start": {
+    "post": {
+      "summary": "Mark a service as IN_PROGRESS (Vendor action)",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "bookingId"
+              ],
+              "properties": {
+                "bookingId": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Service started"
+        }
+      }
+    }
+  },
+  "/api/bookings/end": {
+    "post": {
+      "summary": "Mark a service as SERVICE_ENDED (Vendor action)",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "bookingId"
+              ],
+              "properties": {
+                "bookingId": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Service ended"
+        }
+      }
+    }
+  },
+  "/api/bookings/complete": {
+    "post": {
+      "summary": "Mark a booking as COMPLETED and finalize payments (System/Admin/Auto action)",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "bookingId"
+              ],
+              "properties": {
+                "bookingId": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Booking finalized"
+        }
+      }
+    }
+  },
+  "/api/bookings/add-addon": {
+    "post": {
+      "summary": "Add an addon to the booking",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "bookingId",
+                "addonName",
+                "price"
+              ],
+              "properties": {
+                "bookingId": {
+                  "type": "string"
+                },
+                "addonName": {
+                  "type": "string"
+                },
+                "price": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "Addon added"
+        }
+      }
+    }
+  },
+  "/api/bookings/remove-addon": {
+    "post": {
+      "summary": "Remove an addon from the booking",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "bookingId",
+                "addonId"
+              ],
+              "properties": {
+                "bookingId": {
+                  "type": "string"
+                },
+                "addonId": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Addon removed"
+        }
+      }
+    }
+  },
+  "/api/bookings/tip": {
+    "post": {
+      "summary": "Allow users to tip vendors and credit their wallet",
+      "tags": [
+        "Bookings"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "bookingId",
+                "tipAmount"
+              ],
+              "properties": {
+                "bookingId": {
+                  "type": "string"
+                },
+                "tipAmount": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Tip added to booking"
+        }
+      }
+    }
+  },
+  "/api/payments/initiate": {
+    "post": {
+      "summary": "Initiate a new payment",
+      "tags": [
+        "Payments"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "bookingId",
+                "amount",
+                "paymentMethod"
+              ],
+              "properties": {
+                "bookingId": {
+                  "type": "string"
+                },
+                "amount": {
+                  "type": "number"
+                },
+                "paymentMethod": {
+                  "type": "string",
+                  "enum": [
+                    "UPI",
+                    "CARD",
+                    "WALLET",
+                    "CASHLESS"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Payment initiated successfully"
+        }
+      }
+    }
+  },
+  "/api/payments/verify": {
+    "post": {
+      "summary": "Verify a completed payment",
+      "tags": [
+        "Payments"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "paymentId",
+                "signature"
+              ],
+              "properties": {
+                "paymentId": {
+                  "type": "string"
+                },
+                "signature": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Payment verified successfully"
+        }
+      }
+    }
+  },
+  "/api/payments/referral": {
+    "post": {
+      "summary": "Apply a referral code",
+      "tags": [
+        "Payments"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "referralCode"
+              ],
+              "properties": {
+                "referralCode": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Referral code applied successfully"
+        }
+      }
+    }
+  },
+  "/api/services/categories": {
+    "get": {
+      "summary": "Get all service categories",
+      "tags": [
+        "Services"
+      ],
+      "responses": {
+        "200": {
+          "description": "List of categories"
+        }
+      }
+    },
+    "post": {
+      "summary": "Create a new service category",
+      "tags": [
+        "Services"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "id",
+                "name"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "imageUrl": {
+                  "type": "string"
+                },
+                "parentCategoryId": {
+                  "type": "string"
+                },
+                "isActive": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "Category created"
+        }
+      }
+    }
+  },
+  "/api/services/categories/{categoryId}/services": {
+    "get": {
+      "summary": "Get specific services for a given category",
+      "tags": [
+        "Services"
+      ],
+      "parameters": [
+        {
+          "in": "path",
+          "name": "categoryId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "The category UUID"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "List of services in category"
+        }
+      }
+    }
+  },
+  "/api/services": {
+    "post": {
+      "summary": "Create a new service under a category",
+      "tags": [
+        "Services"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "categoryId",
+                "silverPrice",
+                "durationMinutes"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "categoryId": {
+                  "type": "string"
+                },
+                "silverPrice": {
+                  "type": "number"
+                },
+                "goldPrice": {
+                  "type": "number"
+                },
+                "platinumPrice": {
+                  "type": "number"
+                },
+                "productCost": {
+                  "type": "number"
+                },
+                "durationMinutes": {
+                  "type": "number"
+                },
+                "isActive": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "Service created"
+        }
+      }
+    }
+  },
+  "/api/services/{id}": {
+    "get": {
+      "summary": "Get a specific service by its custom ID",
+      "tags": [
+        "Services"
+      ],
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Service details"
+        }
+      }
+    }
+  },
+  "/api/services/search": {
+    "get": {
+      "summary": "Search for services globally",
+      "tags": [
+        "Services"
+      ],
+      "parameters": [
+        {
+          "in": "query",
+          "name": "query",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Search results"
+        }
+      }
+    }
+  },
+  "/api/services/{serviceId}/addons": {
+    "get": {
+      "summary": "Get addons for a specific service",
+      "tags": [
+        "Services"
+      ],
+      "parameters": [
+        {
+          "in": "path",
+          "name": "serviceId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "List of addons"
+        }
+      }
+    }
+  },
+  "/api/services/addons": {
+    "post": {
+      "summary": "Create an addon for a service",
+      "tags": [
+        "Services"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "id",
+                "serviceId",
+                "name",
+                "price"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "serviceId": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "price": {
+                  "type": "number"
+                },
+                "isActive": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "Addon created"
+        }
+      }
+    }
+  },
+  "/api/uploads": {
+    "post": {
+      "summary": "Upload a media file",
+      "tags": [
+        "Uploads"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "multipart/form-data": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "file": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "File uploaded, returns public valid AWS S3 URL"
+        }
+      }
+    }
+  },
+  "/api/users/profile": {
+    "get": {
+      "summary": "Get current user's profile",
+      "tags": [
+        "Users"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "User profile retrieved successfully"
+        },
+        "401": {
+          "description": "Unauthorized"
+        },
+        "404": {
+          "description": "User not found"
+        }
+      }
+    },
+    "put": {
+      "summary": "Update current user's profile",
+      "tags": [
+        "Users"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "gender": {
+                  "type": "string",
+                  "enum": [
+                    "MALE",
+                    "FEMALE",
+                    "OTHER"
+                  ]
+                },
+                "addressBook": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Profile updated successfully"
+        },
+        "400": {
+          "description": "Validation error"
+        },
+        "404": {
+          "description": "User not found"
+        }
+      }
+    }
+  },
+  "/api/users/profile/upload-photo": {
+    "post": {
+      "summary": "Upload a photo for the user profile",
+      "tags": [
+        "Users"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Photo uploaded successfully"
+        }
+      }
+    }
+  },
+  "/api/users/profile/delete": {
+    "delete": {
+      "summary": "Delete the user account",
+      "tags": [
+        "Users"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Account deleted successfully"
+        }
+      }
+    }
+  },
+  "/api/users/address": {
+    "get": {
+      "summary": "Get all addresses for the logged-in user",
+      "tags": [
+        "Address"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "List of user addresses"
+        }
+      }
+    }
+  },
+  "/api/users/address/add": {
+    "post": {
+      "summary": "Add a new address",
+      "tags": [
+        "Address"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "HOME",
+                    "WORK",
+                    "OTHER"
+                  ]
+                },
+                "street": {
+                  "type": "string"
+                },
+                "city": {
+                  "type": "string"
+                },
+                "state": {
+                  "type": "string"
+                },
+                "zipCode": {
+                  "type": "string"
+                },
+                "landmark": {
+                  "type": "string"
+                },
+                "lat": {
+                  "type": "number"
+                },
+                "lng": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "Address added successfully"
+        }
+      }
+    }
+  },
+  "/api/users/address/update/{id}": {
+    "put": {
+      "summary": "Update an existing address",
+      "tags": [
+        "Address"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "The address UUID"
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "HOME",
+                    "WORK",
+                    "OTHER"
+                  ]
+                },
+                "street": {
+                  "type": "string"
+                },
+                "city": {
+                  "type": "string"
+                },
+                "state": {
+                  "type": "string"
+                },
+                "zipCode": {
+                  "type": "string"
+                },
+                "landmark": {
+                  "type": "string"
+                },
+                "lat": {
+                  "type": "number"
+                },
+                "lng": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Address updated successfully"
+        },
+        "404": {
+          "description": "Address not found"
+        }
+      }
+    }
+  },
+  "/api/users/address/delete/{id}": {
+    "delete": {
+      "summary": "Delete an address",
+      "tags": [
+        "Address"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "The address UUID"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Address deleted successfully"
+        },
+        "404": {
+          "description": "Address not found"
+        }
+      }
+    }
+  },
+  "/api/users/address/set-default/{id}": {
+    "post": {
+      "summary": "Set an address as the default",
+      "tags": [
+        "Address"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "The address UUID"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default address set successfully"
+        },
+        "404": {
+          "description": "Address not found"
+        }
+      }
+    }
+  },
+  "/api/vendors/register": {
+    "post": {
+      "summary": "Register a new vendor",
+      "tags": [
+        "Vendors"
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "name",
+                "email",
+                "mobile",
+                "password"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "mobile": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string"
+                },
+                "address": {
+                  "type": "string"
+                },
+                "age": {
+                  "type": "integer"
+                },
+                "photo": {
+                  "type": "string"
+                },
+                "experienceYears": {
+                  "type": "integer"
+                },
+                "serviceCategoryIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "Vendor registered successfully"
+        }
+      }
+    }
+  },
+  "/api/vendors/verify-otp": {
+    "post": {
+      "summary": "Verify Vendor OTP",
+      "tags": [
+        "Vendors"
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "mobile": {
+                  "type": "string"
+                },
+                "otp": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "OTP verified successfully"
+        },
+        "400": {
+          "description": "Invalid or expired OTP"
+        }
+      }
+    }
+  },
+  "/api/vendors/login": {
+    "post": {
+      "summary": "Vendor Login",
+      "tags": [
+        "Vendors"
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Login successful"
+        }
+      }
+    }
+  },
+  "/api/vendors/profile": {
+    "get": {
+      "summary": "Get vendor profile",
+      "tags": [
+        "Vendors"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Profile data"
+        }
+      }
+    },
+    "put": {
+      "summary": "Update vendor profile",
+      "tags": [
+        "Vendors"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "bio": {
+                  "type": "string"
+                },
+                "isAvailable": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Profile updated"
+        }
+      }
+    }
+  },
+  "/api/vendors/document": {
+    "post": {
+      "summary": "Upload vendor verification document",
+      "tags": [
+        "Vendors"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "documentUrl": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Document uploaded successfully"
+        }
+      }
+    }
+  },
+  "/api/vendors/subscription": {
+    "get": {
+      "summary": "Get current subscription plan",
+      "tags": [
+        "Vendors"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Active subscription"
+        }
+      }
+    }
+  },
+  "/api/vendors/subscription/purchase": {
+    "post": {
+      "summary": "Purchase a subscription plan",
+      "tags": [
+        "Vendors"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "planId": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Subscription activated"
+        }
+      }
+    }
+  },
+  "/api/vendors/jobs/pending": {
+    "get": {
+      "summary": "Get all pending jobs assigned to vendor",
+      "tags": [
+        "Vendors"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "List of pending bookings"
+        }
+      }
+    }
+  },
+  "/api/vendors/jobs/{bookingId}/accept": {
+    "post": {
+      "summary": "Accept a pending job",
+      "tags": [
+        "Vendors"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "parameters": [
+        {
+          "in": "path",
+          "name": "bookingId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Job accepted"
+        }
+      }
+    }
+  },
+  "/api/vendors/jobs/{bookingId}/reject": {
+    "post": {
+      "summary": "Reject a pending job",
+      "tags": [
+        "Vendors"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "parameters": [
+        {
+          "in": "path",
+          "name": "bookingId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Job rejected"
+        }
+      }
+    }
+  },
+  "/api/vendors/jobs/{bookingId}/status": {
+    "put": {
+      "summary": "Update status of an active job",
+      "tags": [
+        "Vendors"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "parameters": [
+        {
+          "in": "path",
+          "name": "bookingId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "EN_ROUTE",
+                    "IN_PROGRESS",
+                    "COMPLETED"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Status updated"
+        }
+      }
+    }
+  },
+  "/api/vendors/earnings": {
+    "get": {
+      "summary": "Get vendor earnings overview",
+      "tags": [
+        "Vendors"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Earnings data"
+        }
+      }
+    }
+  },
+  "/api/vendors/earnings/payout": {
+    "post": {
+      "summary": "Request a payout",
+      "tags": [
+        "Vendors"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "amount": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Payout requested"
+        }
+      }
+    }
+  }
+}

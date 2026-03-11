@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerVendor, loginVendor, getVendorProfile, updateVendorProfile } from "../controllers/vendorController";
+import { registerVendor, verifyVendorOtp, loginVendor, getVendorProfile, updateVendorProfile, uploadVendorDocument } from "../controllers/vendorController";
 import { authenticateJWT, authorizeRole } from "../middlewares/authMiddleware";
 import { validateRequest } from "../middlewares/validationMiddleware";
 import {
@@ -8,7 +8,9 @@ import {
     updateVendorProfileSchema,
     purchaseSubscriptionSchema,
     jobStatusSchema,
-    payoutRequestSchema
+    payoutRequestSchema,
+    uploadDocumentSchema,
+    verifyOtpSchema
 } from "../validations/vendorValidations";
 
 const router = Router();
@@ -46,6 +48,14 @@ const router = Router();
  *                 type: string
  *               password:
  *                 type: string
+ *               address:
+ *                 type: string
+ *               age:
+ *                 type: integer
+ *               photo:
+ *                 type: string
+ *               experienceYears:
+ *                 type: integer
  *               serviceCategoryIds:
  *                 type: array
  *                 items:
@@ -55,6 +65,31 @@ const router = Router();
  *         description: Vendor registered successfully
  */
 router.post("/register", validateRequest(registerVendorSchema), registerVendor);
+
+/**
+ * @swagger
+ * /api/vendors/verify-otp:
+ *   post:
+ *     summary: Verify Vendor OTP
+ *     tags: [Vendors]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               mobile:
+ *                 type: string
+ *               otp:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: OTP verified successfully
+ *       400:
+ *         description: Invalid or expired OTP
+ */
+router.post("/verify-otp", validateRequest(verifyOtpSchema), verifyVendorOtp);
 
 /**
  * @swagger
@@ -122,6 +157,29 @@ router.get("/profile", authenticateJWT, authorizeRole("VENDOR"), getVendorProfil
  *         description: Profile updated
  */
 router.put("/profile", authenticateJWT, authorizeRole("VENDOR"), validateRequest(updateVendorProfileSchema), updateVendorProfile);
+
+/**
+ * @swagger
+ * /api/vendors/document:
+ *   post:
+ *     summary: Upload vendor verification document
+ *     tags: [Vendors]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               documentUrl:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Document uploaded successfully
+ */
+router.post("/document", authenticateJWT, authorizeRole("VENDOR"), validateRequest(uploadDocumentSchema), uploadVendorDocument);
 
 /**
  * @swagger

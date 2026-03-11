@@ -14,7 +14,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "super_secret_jwt_key_here";
 
 export const registerVendor = async (req: Request, res: Response) => {
     try {
-        const { name, email, mobile, password, serviceCategoryIds } = req.body;
+        const { name, email, mobile, password, address, age, photo, experienceYears, serviceCategoryIds } = req.body;
 
         const existingVendor = await vendorRepo.findOne({ where: [{ email }, { mobile }] });
         if (existingVendor) return res.status(400).json({ message: "Vendor already exists with this email or mobile" });
@@ -26,6 +26,10 @@ export const registerVendor = async (req: Request, res: Response) => {
             email,
             mobile,
             password: hashedPassword,
+            address,
+            age,
+            photo,
+            experienceYears,
             status: VendorStatus.PENDING
         });
 
@@ -43,9 +47,28 @@ export const registerVendor = async (req: Request, res: Response) => {
         
         await smsService.sendOTP(vendor.mobile, otp);
 
-        res.status(201).json({ message: "Vendor registered successfully. OTP sent for verification." });
+        res.status(201).json({ message: "Vendor registered successfully. OTP sent for verification.", vendorId: vendor.id });
     } catch (error) {
         res.status(500).json({ message: "Error registering vendor", error });
+    }
+};
+
+export const verifyVendorOtp = async (req: Request, res: Response) => {
+    try {
+        const { mobile, otp } = req.body;
+        
+        const vendor = await vendorRepo.findOneBy({ mobile });
+        if (!vendor) return res.status(404).json({ message: "Vendor not found" });
+
+        const isVerified = await smsService.verifyOTP(mobile, otp);
+        if (!isVerified) return res.status(400).json({ message: "Invalid or expired OTP" });
+
+        vendor.isVerified = true;
+        await vendorRepo.save(vendor);
+
+        res.status(200).json({ message: "OTP verified successfully. You can now login.", vendor });
+    } catch (error) {
+         res.status(500).json({ message: "Error verifying OTP", error });
     }
 };
 
@@ -59,7 +82,7 @@ export const loginVendor = async (req: Request, res: Response) => {
         const isMatch = await bcrypt.compare(password, vendor.password);
         if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
-        if (vendor.status === VendorStatus.PENDING || vendor.status === VendorStatus.REJECTED || vendor.status === VendorStatus.SUSPENDED) {
+        if (vendor.status === VendorStatus.REJECTED || vendor.status === VendorStatus.SUSPENDED) {
             return res.status(403).json({ message: `Access denied. Vendor status: ${vendor.status}` });
         }
 
@@ -98,5 +121,22 @@ export const updateVendorProfile = async (req: any, res: Response) => {
         res.status(200).json({ message: "Profile updated", vendor });
     } catch (error) {
         res.status(500).json({ message: "Error updating profile", error });
+    }
+};
+
+export const uploadVendorDocument = async (req: any, res: Response) => {
+    try {
+        const vendorId = req.user.id;
+        const { documentUrl } = req.body;
+
+        const vendor = await vendorRepo.findOneBy({ id: vendorId });
+        if (!vendor) return res.status(404).json({ message: "Vendor not found" });
+
+        vendor.documentUrl = documentUrl;
+        
+        await vendorRepo.save(vendor);
+        res.status(200).json({ message: "Document uploaded successfully", vendor });
+    } catch (error) {
+        res.status(500).json({ message: "Error uploading document", error });
     }
 };

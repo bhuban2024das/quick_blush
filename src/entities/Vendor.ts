@@ -82,6 +82,12 @@ export class Vendor {
     @Column({ type: "geometry", spatialFeatureType: "Point", srid: 4326, nullable: true })
     location!: string;
 
+    @Column({ type: "varchar", nullable: true })
+    documentUrl?: string;
+
+    @Column({ type: "boolean", default: false })
+    isVerified!: boolean;
+
     @CreateDateColumn()
     createdAt!: Date;
 

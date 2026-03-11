@@ -34,6 +34,10 @@ export const acceptJob = async (req: any, res: Response) => {
         }
 
         const vendor = await vendorRepo.findOneBy({ id: vendorId });
+        
+        if (vendor?.status !== 'APPROVED') {
+            return res.status(403).json({ message: "You must be an APPROVED vendor to accept jobs" });
+        }
 
         booking.vendor = vendor!;
         booking.status = BookingStatus.VENDOR_ASSIGNED;

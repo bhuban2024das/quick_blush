@@ -5,7 +5,20 @@ export const registerVendorSchema = Joi.object({
     email: Joi.string().email().required(),
     mobile: Joi.string().pattern(/^[0-9]{10,15}$/).required(),
     password: Joi.string().min(6).required(),
+    address: Joi.string().optional(),
+    age: Joi.number().integer().min(18).optional(),
+    photo: Joi.string().uri().optional(),
+    experienceYears: Joi.number().integer().min(0).optional(),
     serviceCategoryIds: Joi.array().items(Joi.string()).optional()
+});
+
+export const uploadDocumentSchema = Joi.object({
+    documentUrl: Joi.string().uri().required()
+});
+
+export const verifyOtpSchema = Joi.object({
+    mobile: Joi.string().pattern(/^[0-9]{10,15}$/).required(),
+    otp: Joi.string().length(6).required()
 });
 
 export const loginVendorSchema = Joi.object({
