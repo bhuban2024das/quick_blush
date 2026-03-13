@@ -12,6 +12,9 @@ export class WalletTransaction {
     @PrimaryGeneratedColumn("uuid")
     id!: string;
 
+
+ 
+
     @ManyToOne(() => Wallet, { onDelete: "CASCADE" })
     wallet!: Wallet;
 
