@@ -48,7 +48,7 @@ exports.AppDataSource = new typeorm_1.DataSource({
     database: process.env.DB_NAME || "quick_blush",
     synchronize: process.env.NODE_ENV !== "production", // auto sync schema in dev
     logging: process.env.NODE_ENV !== "production",
-    entities: ["src/entities/**/*.ts"],
-    migrations: ["src/migrations/**/*.ts"],
-    subscribers: ["src/subscribers/**/*.ts"],
+    entities: [process.env.NODE_ENV === "production" ? "dist/entities/**/*.js" : "src/entities/**/*.ts"],
+    migrations: [process.env.NODE_ENV === "production" ? "dist/migrations/**/*.js" : "src/migrations/**/*.ts"],
+    subscribers: [process.env.NODE_ENV === "production" ? "dist/subscribers/**/*.js" : "src/subscribers/**/*.ts"],
 });
