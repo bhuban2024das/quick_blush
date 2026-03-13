@@ -9,42 +9,33 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Booking = exports.PaymentMethod = exports.BookingStatus = void 0;
+exports.Booking = exports.PaymentStatus = exports.BookingStatus = void 0;
 const typeorm_1 = require("typeorm");
 const User_1 = require("./User");
 const Vendor_1 = require("./Vendor");
-var BookingStatus;
-(function (BookingStatus) {
-    BookingStatus["PENDING"] = "PENDING";
-    BookingStatus["ACCEPTED"] = "ACCEPTED";
-    BookingStatus["EN_ROUTE"] = "EN_ROUTE";
-    BookingStatus["ARRIVED"] = "ARRIVED";
-    BookingStatus["STARTED"] = "STARTED";
-    BookingStatus["COMPLETED"] = "COMPLETED";
-    BookingStatus["CANCELLED"] = "CANCELLED";
-})(BookingStatus || (exports.BookingStatus = BookingStatus = {}));
-var PaymentMethod;
-(function (PaymentMethod) {
-    PaymentMethod["UPI"] = "UPI";
-    PaymentMethod["CARD"] = "CARD";
-    PaymentMethod["WALLET"] = "WALLET";
-    PaymentMethod["CASHLESS"] = "CASHLESS";
-})(PaymentMethod || (exports.PaymentMethod = PaymentMethod = {}));
+const Service_1 = require("./Service");
+const BookingAddon_1 = require("./BookingAddon");
+const BookingTimeline_1 = require("./BookingTimeline");
+const BookingEnums_1 = require("./BookingEnums");
+Object.defineProperty(exports, "BookingStatus", { enumerable: true, get: function () { return BookingEnums_1.BookingStatus; } });
+Object.defineProperty(exports, "PaymentStatus", { enumerable: true, get: function () { return BookingEnums_1.PaymentStatus; } });
 let Booking = class Booking {
     id;
     user;
     vendor;
-    services; // array of service objects ({ id, name, price, type })
-    userProvidedProducts; // if true, productCost is waived
-    totalAmount;
-    serviceCharge;
-    productCost;
-    scheduledAt;
+    service;
+    scheduledDate;
+    scheduledTime;
     status;
-    paymentMethod;
-    isPaid;
-    specialInstructions;
-    address; // location where service is rendered
+    paymentStatus;
+    totalAmount;
+    tipAmount;
+    lat;
+    lng;
+    address;
+    customerNotes;
+    addons;
+    timeline;
     createdAt;
     updatedAt;
 };
@@ -59,52 +50,60 @@ __decorate([
 ], Booking.prototype, "user", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => Vendor_1.Vendor, { eager: true, nullable: true, onDelete: "SET NULL" }),
-    __metadata("design:type", Vendor_1.Vendor)
+    __metadata("design:type", Object)
 ], Booking.prototype, "vendor", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "jsonb" }),
-    __metadata("design:type", Object)
-], Booking.prototype, "services", void 0);
+    (0, typeorm_1.ManyToOne)(() => Service_1.Service, { eager: true, nullable: true }),
+    __metadata("design:type", Service_1.Service)
+], Booking.prototype, "service", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "boolean", default: false }),
-    __metadata("design:type", Boolean)
-], Booking.prototype, "userProvidedProducts", void 0);
+    (0, typeorm_1.Column)({ type: "date" }),
+    __metadata("design:type", String)
+], Booking.prototype, "scheduledDate", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "decimal", precision: 10, scale: 2 }),
-    __metadata("design:type", Number)
-], Booking.prototype, "totalAmount", void 0);
+    (0, typeorm_1.Column)({ type: "time" }),
+    __metadata("design:type", String)
+], Booking.prototype, "scheduledTime", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "decimal", precision: 10, scale: 2 }),
-    __metadata("design:type", Number)
-], Booking.prototype, "serviceCharge", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: "decimal", precision: 10, scale: 2, default: 0 }),
-    __metadata("design:type", Number)
-], Booking.prototype, "productCost", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: "timestamp" }),
-    __metadata("design:type", Date)
-], Booking.prototype, "scheduledAt", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: "enum", enum: BookingStatus, default: BookingStatus.PENDING }),
+    (0, typeorm_1.Column)({ type: "enum", enum: BookingEnums_1.BookingStatus, default: BookingEnums_1.BookingStatus.PENDING_PAYMENT }),
     __metadata("design:type", String)
 ], Booking.prototype, "status", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "enum", enum: PaymentMethod, default: PaymentMethod.UPI }),
+    (0, typeorm_1.Column)({ type: "enum", enum: BookingEnums_1.PaymentStatus, default: BookingEnums_1.PaymentStatus.PENDING }),
     __metadata("design:type", String)
-], Booking.prototype, "paymentMethod", void 0);
+], Booking.prototype, "paymentStatus", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "boolean", default: false }),
-    __metadata("design:type", Boolean)
-], Booking.prototype, "isPaid", void 0);
+    (0, typeorm_1.Column)({ type: "decimal", precision: 10, scale: 2, default: 0 }),
+    __metadata("design:type", Number)
+], Booking.prototype, "totalAmount", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "decimal", precision: 10, scale: 2, default: 0 }),
+    __metadata("design:type", Number)
+], Booking.prototype, "tipAmount", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "decimal", precision: 10, scale: 6, nullable: true }),
+    __metadata("design:type", Number)
+], Booking.prototype, "lat", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "decimal", precision: 10, scale: 6, nullable: true }),
+    __metadata("design:type", Number)
+], Booking.prototype, "lng", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "text" }),
+    __metadata("design:type", String)
+], Booking.prototype, "address", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "text", nullable: true }),
     __metadata("design:type", String)
-], Booking.prototype, "specialInstructions", void 0);
+], Booking.prototype, "customerNotes", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "jsonb", nullable: true }),
-    __metadata("design:type", Object)
-], Booking.prototype, "address", void 0);
+    (0, typeorm_1.OneToMany)(() => BookingAddon_1.BookingAddon, addon => addon.booking, { cascade: true }),
+    __metadata("design:type", Array)
+], Booking.prototype, "addons", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => BookingTimeline_1.BookingTimeline, timeline => timeline.booking, { cascade: true }),
+    __metadata("design:type", Array)
+], Booking.prototype, "timeline", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)

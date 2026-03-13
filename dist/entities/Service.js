@@ -29,7 +29,7 @@ let Service = class Service {
 };
 exports.Service = Service;
 __decorate([
-    (0, typeorm_1.PrimaryGeneratedColumn)("uuid"),
+    (0, typeorm_1.PrimaryColumn)("varchar", { length: 50 }),
     __metadata("design:type", String)
 ], Service.prototype, "id", void 0);
 __decorate([

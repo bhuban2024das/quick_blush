@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Vendor = exports.VendorLevel = exports.VendorStatus = void 0;
 const typeorm_1 = require("typeorm");
 const ServiceCategory_1 = require("./ServiceCategory");
+const Service_1 = require("./Service");
 var VendorStatus;
 (function (VendorStatus) {
     VendorStatus["PENDING"] = "PENDING";
@@ -42,8 +43,11 @@ let Vendor = class Vendor {
     walletBalance;
     password;
     serviceCategories;
+    services;
     // Geolocation - For spatial queries we'd use PostGIS 'geometry' type
     location;
+    documentUrl;
+    isVerified;
     createdAt;
     updatedAt;
 };
@@ -69,7 +73,7 @@ __decorate([
     __metadata("design:type", String)
 ], Vendor.prototype, "address", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "int" }),
+    (0, typeorm_1.Column)({ type: "int", nullable: true }),
     __metadata("design:type", Number)
 ], Vendor.prototype, "age", void 0);
 __decorate([
@@ -118,9 +122,26 @@ __decorate([
     __metadata("design:type", Array)
 ], Vendor.prototype, "serviceCategories", void 0);
 __decorate([
+    (0, typeorm_1.ManyToMany)(() => Service_1.Service),
+    (0, typeorm_1.JoinTable)({
+        name: "vendor_services",
+        joinColumn: { name: "vendor_id", referencedColumnName: "id" },
+        inverseJoinColumn: { name: "service_id", referencedColumnName: "id" }
+    }),
+    __metadata("design:type", Array)
+], Vendor.prototype, "services", void 0);
+__decorate([
     (0, typeorm_1.Column)({ type: "geometry", spatialFeatureType: "Point", srid: 4326, nullable: true }),
     __metadata("design:type", String)
 ], Vendor.prototype, "location", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", nullable: true }),
+    __metadata("design:type", String)
+], Vendor.prototype, "documentUrl", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "boolean", default: false }),
+    __metadata("design:type", Boolean)
+], Vendor.prototype, "isVerified", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)

@@ -24,6 +24,11 @@ const router = (0, express_1.Router)();
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - mobile
+ *               - password
  *             properties:
  *               name:
  *                 type: string
@@ -33,15 +38,47 @@ const router = (0, express_1.Router)();
  *                 type: string
  *               password:
  *                 type: string
+ *               address:
+ *                 type: string
+ *               age:
+ *                 type: integer
+ *               photo:
+ *                 type: string
+ *               experienceYears:
+ *                 type: integer
  *               serviceCategoryIds:
  *                 type: array
  *                 items:
- *                   type: integer
+ *                   type: string
  *     responses:
  *       201:
  *         description: Vendor registered successfully
  */
 router.post("/register", (0, validationMiddleware_1.validateRequest)(vendorValidations_1.registerVendorSchema), vendorController_1.registerVendor);
+/**
+ * @swagger
+ * /api/vendors/verify-otp:
+ *   post:
+ *     summary: Verify Vendor OTP
+ *     tags: [Vendors]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               mobile:
+ *                 type: string
+ *               otp:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: OTP verified successfully
+ *       400:
+ *         description: Invalid or expired OTP
+ */
+router.post("/verify-otp", (0, validationMiddleware_1.validateRequest)(vendorValidations_1.verifyOtpSchema), vendorController_1.verifyVendorOtp);
 /**
  * @swagger
  * /api/vendors/login:
@@ -107,6 +144,28 @@ router.get("/profile", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.au
 router.put("/profile", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("VENDOR"), (0, validationMiddleware_1.validateRequest)(vendorValidations_1.updateVendorProfileSchema), vendorController_1.updateVendorProfile);
 /**
  * @swagger
+ * /api/vendors/document:
+ *   post:
+ *     summary: Upload vendor verification document
+ *     tags: [Vendors]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               documentUrl:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Document uploaded successfully
+ */
+router.post("/document", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("VENDOR"), (0, validationMiddleware_1.validateRequest)(vendorValidations_1.uploadDocumentSchema), vendorController_1.uploadVendorDocument);
+/**
+ * @swagger
  * /api/vendors/subscription:
  *   get:
  *     summary: Get current subscription plan
@@ -134,7 +193,7 @@ router.get("/subscription", authMiddleware_1.authenticateJWT, (0, authMiddleware
  *             type: object
  *             properties:
  *               planId:
- *                 type: integer
+ *                 type: string
  *     responses:
  *       200:
  *         description: Subscription activated
@@ -166,7 +225,7 @@ router.get("/jobs/pending", authMiddleware_1.authenticateJWT, (0, authMiddleware
  *         name: bookingId
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
  *     responses:
  *       200:
  *         description: Job accepted
@@ -185,7 +244,7 @@ router.post("/jobs/:bookingId/accept", authMiddleware_1.authenticateJWT, (0, aut
  *         name: bookingId
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
  *     responses:
  *       200:
  *         description: Job rejected
@@ -204,7 +263,7 @@ router.post("/jobs/:bookingId/reject", authMiddleware_1.authenticateJWT, (0, aut
  *         name: bookingId
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
  *     requestBody:
  *       required: true
  *       content:

@@ -9,56 +9,46 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ServiceCategory = void 0;
+exports.City = void 0;
 const typeorm_1 = require("typeorm");
-let ServiceCategory = class ServiceCategory {
+let City = class City {
     id;
     name;
-    description;
-    imageUrl;
-    parentCategory;
-    subCategories;
+    state;
+    country;
     isActive;
     createdAt;
     updatedAt;
 };
-exports.ServiceCategory = ServiceCategory;
+exports.City = City;
 __decorate([
-    (0, typeorm_1.PrimaryColumn)("varchar", { length: 50 }),
+    (0, typeorm_1.PrimaryGeneratedColumn)("uuid"),
     __metadata("design:type", String)
-], ServiceCategory.prototype, "id", void 0);
+], City.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "varchar", length: 255 }),
+    (0, typeorm_1.Column)({ type: "varchar", length: 100, unique: true }),
     __metadata("design:type", String)
-], ServiceCategory.prototype, "name", void 0);
+], City.prototype, "name", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "text", nullable: true }),
+    (0, typeorm_1.Column)({ type: "varchar", length: 100 }),
     __metadata("design:type", String)
-], ServiceCategory.prototype, "description", void 0);
+], City.prototype, "state", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "varchar", nullable: true }),
+    (0, typeorm_1.Column)({ type: "varchar", length: 100, default: "India" }),
     __metadata("design:type", String)
-], ServiceCategory.prototype, "imageUrl", void 0);
-__decorate([
-    (0, typeorm_1.ManyToOne)(() => ServiceCategory, category => category.subCategories, { nullable: true, onDelete: "CASCADE" }),
-    __metadata("design:type", ServiceCategory)
-], ServiceCategory.prototype, "parentCategory", void 0);
-__decorate([
-    (0, typeorm_1.OneToMany)(() => ServiceCategory, category => category.parentCategory),
-    __metadata("design:type", Array)
-], ServiceCategory.prototype, "subCategories", void 0);
+], City.prototype, "country", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "boolean", default: true }),
     __metadata("design:type", Boolean)
-], ServiceCategory.prototype, "isActive", void 0);
+], City.prototype, "isActive", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
-], ServiceCategory.prototype, "createdAt", void 0);
+], City.prototype, "createdAt", void 0);
 __decorate([
     (0, typeorm_1.UpdateDateColumn)(),
     __metadata("design:type", Date)
-], ServiceCategory.prototype, "updatedAt", void 0);
-exports.ServiceCategory = ServiceCategory = __decorate([
-    (0, typeorm_1.Entity)("service_categories")
-], ServiceCategory);
+], City.prototype, "updatedAt", void 0);
+exports.City = City = __decorate([
+    (0, typeorm_1.Entity)("cities")
+], City);

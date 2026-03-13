@@ -14,6 +14,7 @@ const typeorm_1 = require("typeorm");
 const User_1 = require("./User");
 const Vendor_1 = require("./Vendor");
 const Booking_1 = require("./Booking");
+const Service_1 = require("./Service");
 var ReviewType;
 (function (ReviewType) {
     ReviewType["USER_TO_VENDOR"] = "USER_TO_VENDOR";
@@ -25,6 +26,7 @@ let RatingReview = class RatingReview {
     reviewType;
     user;
     vendor;
+    service;
     rating; // 1 to 5 scale
     comment;
     createdAt;
@@ -50,6 +52,10 @@ __decorate([
     (0, typeorm_1.ManyToOne)(() => Vendor_1.Vendor, { onDelete: "CASCADE" }),
     __metadata("design:type", Vendor_1.Vendor)
 ], RatingReview.prototype, "vendor", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => Service_1.Service, { nullable: true, onDelete: "SET NULL" }),
+    __metadata("design:type", Service_1.Service)
+], RatingReview.prototype, "service", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "int" }),
     __metadata("design:type", Number)

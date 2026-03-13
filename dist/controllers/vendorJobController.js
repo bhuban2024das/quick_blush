@@ -13,8 +13,8 @@ const getPendingJobs = async (req, res) => {
         // Here we just fetch jobs strictly assigned or broadly unassigned (pending)
         const bookings = await bookingRepo.find({
             where: [
-                { vendor: { id: vendorId }, status: Booking_1.BookingStatus.PENDING },
-                { vendor: undefined, status: Booking_1.BookingStatus.PENDING }
+                { vendor: { id: vendorId }, status: Booking_1.BookingStatus.CONFIRMED },
+                { vendor: undefined, status: Booking_1.BookingStatus.CONFIRMED }
             ]
         });
         res.status(200).json(bookings);
@@ -29,12 +29,15 @@ const acceptJob = async (req, res) => {
         const vendorId = req.user.id;
         const { bookingId } = req.params;
         const booking = await bookingRepo.findOneBy({ id: bookingId });
-        if (!booking || booking.status !== Booking_1.BookingStatus.PENDING) {
+        if (!booking || booking.status !== Booking_1.BookingStatus.CONFIRMED) {
             return res.status(400).json({ message: "Booking no longer available" });
         }
         const vendor = await vendorRepo.findOneBy({ id: vendorId });
+        if (vendor?.status !== 'APPROVED') {
+            return res.status(403).json({ message: "You must be an APPROVED vendor to accept jobs" });
+        }
         booking.vendor = vendor;
-        booking.status = Booking_1.BookingStatus.ACCEPTED;
+        booking.status = Booking_1.BookingStatus.VENDOR_ASSIGNED;
         await bookingRepo.save(booking);
         vendor.consecutiveRejections = 0; // reset
         await vendorRepo.save(vendor);
@@ -76,7 +79,7 @@ const updateJobStatus = async (req, res) => {
         });
         if (!booking)
             return res.status(404).json({ message: "Booking not found or not assigned to you" });
-        const validStatuses = [Booking_1.BookingStatus.EN_ROUTE, Booking_1.BookingStatus.ARRIVED, Booking_1.BookingStatus.STARTED, Booking_1.BookingStatus.COMPLETED];
+        const validStatuses = [Booking_1.BookingStatus.VENDOR_ENROUTE, Booking_1.BookingStatus.ARRIVED, Booking_1.BookingStatus.IN_PROGRESS, Booking_1.BookingStatus.SERVICE_ENDED, Booking_1.BookingStatus.COMPLETED];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ message: "Invalid status update" });
         }

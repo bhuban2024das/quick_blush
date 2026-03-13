@@ -16,6 +16,7 @@ let User = class User {
     name;
     mobile;
     email;
+    password;
     gender;
     photo;
     isVerified;
@@ -30,7 +31,7 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "varchar", length: 255 }),
+    (0, typeorm_1.Column)({ type: "varchar", length: 255, nullable: true }),
     __metadata("design:type", String)
 ], User.prototype, "name", void 0);
 __decorate([
@@ -41,6 +42,10 @@ __decorate([
     (0, typeorm_1.Column)({ type: "varchar", length: 150, unique: true, nullable: true }),
     __metadata("design:type", String)
 ], User.prototype, "email", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", nullable: true }),
+    __metadata("design:type", String)
+], User.prototype, "password", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "varchar", nullable: true }),
     __metadata("design:type", String)

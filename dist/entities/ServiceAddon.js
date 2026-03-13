@@ -9,56 +9,47 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ServiceCategory = void 0;
+exports.ServiceAddon = void 0;
 const typeorm_1 = require("typeorm");
-let ServiceCategory = class ServiceCategory {
+const Service_1 = require("./Service");
+let ServiceAddon = class ServiceAddon {
     id;
+    service;
     name;
-    description;
-    imageUrl;
-    parentCategory;
-    subCategories;
+    price;
     isActive;
     createdAt;
     updatedAt;
 };
-exports.ServiceCategory = ServiceCategory;
+exports.ServiceAddon = ServiceAddon;
 __decorate([
     (0, typeorm_1.PrimaryColumn)("varchar", { length: 50 }),
     __metadata("design:type", String)
-], ServiceCategory.prototype, "id", void 0);
+], ServiceAddon.prototype, "id", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => Service_1.Service, { eager: false, onDelete: "CASCADE" }),
+    __metadata("design:type", Service_1.Service)
+], ServiceAddon.prototype, "service", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "varchar", length: 255 }),
     __metadata("design:type", String)
-], ServiceCategory.prototype, "name", void 0);
+], ServiceAddon.prototype, "name", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "text", nullable: true }),
-    __metadata("design:type", String)
-], ServiceCategory.prototype, "description", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: "varchar", nullable: true }),
-    __metadata("design:type", String)
-], ServiceCategory.prototype, "imageUrl", void 0);
-__decorate([
-    (0, typeorm_1.ManyToOne)(() => ServiceCategory, category => category.subCategories, { nullable: true, onDelete: "CASCADE" }),
-    __metadata("design:type", ServiceCategory)
-], ServiceCategory.prototype, "parentCategory", void 0);
-__decorate([
-    (0, typeorm_1.OneToMany)(() => ServiceCategory, category => category.parentCategory),
-    __metadata("design:type", Array)
-], ServiceCategory.prototype, "subCategories", void 0);
+    (0, typeorm_1.Column)({ type: "decimal", precision: 10, scale: 2 }),
+    __metadata("design:type", Number)
+], ServiceAddon.prototype, "price", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "boolean", default: true }),
     __metadata("design:type", Boolean)
-], ServiceCategory.prototype, "isActive", void 0);
+], ServiceAddon.prototype, "isActive", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
-], ServiceCategory.prototype, "createdAt", void 0);
+], ServiceAddon.prototype, "createdAt", void 0);
 __decorate([
     (0, typeorm_1.UpdateDateColumn)(),
     __metadata("design:type", Date)
-], ServiceCategory.prototype, "updatedAt", void 0);
-exports.ServiceCategory = ServiceCategory = __decorate([
-    (0, typeorm_1.Entity)("service_categories")
-], ServiceCategory);
+], ServiceAddon.prototype, "updatedAt", void 0);
+exports.ServiceAddon = ServiceAddon = __decorate([
+    (0, typeorm_1.Entity)("service_addons")
+], ServiceAddon);

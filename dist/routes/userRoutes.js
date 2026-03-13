@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const userController_1 = require("../controllers/userController");
+const addressController_1 = require("../controllers/addressController");
 const authMiddleware_1 = require("../middlewares/authMiddleware");
 const validationMiddleware_1 = require("../middlewares/validationMiddleware");
 const userValidations_1 = require("../validations/userValidations");
@@ -12,61 +13,6 @@ const router = (0, express_1.Router)();
  *   name: Users
  *   description: User authentication and profile management
  */
-/**
- * @swagger
- * /api/users/request-otp:
- *   post:
- *     summary: Request an OTP for a mobile number
- *     tags: [Users]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - mobile
- *             properties:
- *               mobile:
- *                 type: string
- *                 example: "1234567890"
- *                 description: Mobile number of the user
- *     responses:
- *       200:
- *         description: OTP sent successfully
- *       400:
- *         description: Validation Error or Mobile number required
- */
-router.post("/request-otp", (0, validationMiddleware_1.validateRequest)(userValidations_1.requestOtpSchema), userController_1.requestOtp);
-/**
- * @swagger
- * /api/users/verify-otp:
- *   post:
- *     summary: Verify OTP for a mobile number and log in
- *     tags: [Users]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - mobile
- *               - otp
- *             properties:
- *               mobile:
- *                 type: string
- *                 example: "1234567890"
- *               otp:
- *                 type: string
- *                 example: "123456"
- *     responses:
- *       200:
- *         description: Login successful, returns JWT token and user profile
- *       400:
- *         description: Invalid OTP
- */
-router.post("/verify-otp", (0, validationMiddleware_1.validateRequest)(userValidations_1.verifyOtpSchema), userController_1.verifyOtp);
 /**
  * @swagger
  * /api/users/profile:
@@ -119,4 +65,176 @@ router.get("/profile", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.au
  *         description: User not found
  */
 router.put("/profile", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("USER"), (0, validationMiddleware_1.validateRequest)(userValidations_1.updateProfileSchema), userController_1.updateProfile);
+/**
+ * @swagger
+ * /api/users/profile/upload-photo:
+ *   post:
+ *     summary: Upload a photo for the user profile
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Photo uploaded successfully
+ */
+router.post("/profile/upload-photo", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("USER"));
+/**
+ * @swagger
+ * /api/users/profile/delete:
+ *   delete:
+ *     summary: Delete the user account
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Account deleted successfully
+ */
+router.delete("/profile/delete", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("USER"));
+/**
+ * @swagger
+ * tags:
+ *   name: Address
+ *   description: Address Management for Users
+ */
+/**
+ * @swagger
+ * /api/users/address:
+ *   get:
+ *     summary: Get all addresses for the logged-in user
+ *     tags: [Address]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of user addresses
+ */
+router.get("/address", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("USER"), addressController_1.getAddresses);
+/**
+ * @swagger
+ * /api/users/address/add:
+ *   post:
+ *     summary: Add a new address
+ *     tags: [Address]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               type:
+ *                 type: string
+ *                 enum: [HOME, WORK, OTHER]
+ *               street:
+ *                 type: string
+ *               city:
+ *                 type: string
+ *               state:
+ *                 type: string
+ *               zipCode:
+ *                 type: string
+ *               landmark:
+ *                 type: string
+ *               lat:
+ *                 type: number
+ *               lng:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Address added successfully
+ */
+router.post("/address/add", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("USER"), addressController_1.addAddress);
+/**
+ * @swagger
+ * /api/users/address/update/{id}:
+ *   put:
+ *     summary: Update an existing address
+ *     tags: [Address]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The address UUID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               type:
+ *                 type: string
+ *                 enum: [HOME, WORK, OTHER]
+ *               street:
+ *                 type: string
+ *               city:
+ *                 type: string
+ *               state:
+ *                 type: string
+ *               zipCode:
+ *                 type: string
+ *               landmark:
+ *                 type: string
+ *               lat:
+ *                 type: number
+ *               lng:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Address updated successfully
+ *       404:
+ *         description: Address not found
+ */
+router.put("/address/update/:id", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("USER"), addressController_1.updateAddress);
+/**
+ * @swagger
+ * /api/users/address/delete/{id}:
+ *   delete:
+ *     summary: Delete an address
+ *     tags: [Address]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The address UUID
+ *     responses:
+ *       200:
+ *         description: Address deleted successfully
+ *       404:
+ *         description: Address not found
+ */
+router.delete("/address/delete/:id", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("USER"), addressController_1.deleteAddress);
+/**
+ * @swagger
+ * /api/users/address/set-default/{id}:
+ *   post:
+ *     summary: Set an address as the default
+ *     tags: [Address]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The address UUID
+ *     responses:
+ *       200:
+ *         description: Default address set successfully
+ *       404:
+ *         description: Address not found
+ */
+router.post("/address/set-default/:id", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("USER"), addressController_1.setDefaultAddress);
 exports.default = router;

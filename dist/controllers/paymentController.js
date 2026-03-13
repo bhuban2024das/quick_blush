@@ -16,7 +16,7 @@ const initiatePayment = async (req, res) => {
         const booking = await bookingRepo.findOneBy({ id: bookingId, user: { id: userId } });
         if (!booking)
             return res.status(404).json({ message: "Booking not found" });
-        if (booking.isPaid)
+        if (booking.paymentStatus === Booking_1.PaymentStatus.PAID)
             return res.status(400).json({ message: "Booking already paid" });
         const clientSecret = await stripeService_1.stripeService.createPaymentIntent(Number(booking.totalAmount));
         if (!clientSecret) {
@@ -40,11 +40,11 @@ const verifyPayment = async (req, res) => {
         const booking = await bookingRepo.findOneBy({ id: bookingId, user: { id: userId } });
         if (!booking)
             return res.status(404).json({ message: "Booking not found" });
-        if (booking.isPaid)
+        if (booking.paymentStatus === Booking_1.PaymentStatus.PAID)
             return res.status(400).json({ message: "Booking is already paid" });
         // Update booking
-        booking.isPaid = true;
-        booking.paymentMethod = paymentMethod;
+        booking.paymentStatus = Booking_1.PaymentStatus.PAID;
+        // booking.paymentMethod could be saved to a Transaction table if needed, ignoring for now since it's removed from Booking schema
         await bookingRepo.save(booking);
         // Record Transaction
         const tx = txRepo.create({

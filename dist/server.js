@@ -1,10 +1,4 @@
 "use strict";
-// import "reflect-metadata";
-// import http from "http";
-// import app from "./app";
-// import { AppDataSource } from "./config/data-source";
-// import { Server as SocketIOServer } from "socket.io";
-// import * as dotenv from "dotenv";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -42,106 +36,57 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-// dotenv.config();
-// const PORT = process.env.PORT || 3000;
-// async function bootstrap() {
-//     try {
-//         // Initialize Database Connection
-//         await AppDataSource.initialize();
-//         console.log("🚀 Custom Database connection initialized");
-//         // Create HTTP Server
-//         const server = http.createServer(app);
-//         // Initialize Socket.io
-//         const io = new SocketIOServer(server, {
-//             cors: {
-//                 origin: "*",
-//                 methods: ["GET", "POST"]
-//             }
-//         });
-//         io.on("connection", (socket) => {
-//             console.log(`Socket connected: ${socket.id}`);
-//             // Vendor emitting their live location
-//             socket.on("vendor:location_update", (data) => {
-//                 // data = { vendorId, lat, lng }
-//                 // In a real app, save to Redis for fast geospatial queries
-//                 // Broadcast to users tracking this vendor
-//                 socket.broadcast.emit(`user:track_vendor_${data.vendorId}`, data);
-//             });
-//             // Booking status updates
-//             socket.on("job:status_update", (data) => {
-//                 // data = { bookingId, status, vendorId }
-//                 // Notify the specific user
-//                 io.emit(`booking:update_${data.bookingId}`, data);
-//             });
-//             // Admin or system broadcasts a new job to nearby vendors
-//             socket.on("job:new_request", (data) => {
-//                 // data = { bookingId, serviceDetails, lat, lng }
-//                 // Notify vendors
-//                 io.emit("vendor:new_job_alert", data);
-//             });
-//             socket.on("disconnect", () => {
-//                 console.log(`Socket disconnected: ${socket.id}`);
-//             });
-//         });
-//         // Start listening
-//         server.listen(PORT, () => {
-//             console.log(`🚀 Server is running on port ${PORT}`);
-//             console.log(`📄 Swagger Docs available at http://localhost:${PORT}/docs`);
-//         });
-//     } catch (error) {
-//         console.error("❌ Error during initialization", error);
-//         process.exit(1);
-//     }
-// }
-// bootstrap();
-const dotenv = __importStar(require("dotenv"));
-dotenv.config();
+// Trigger reload
 require("reflect-metadata");
 const http_1 = __importDefault(require("http"));
 const app_1 = __importDefault(require("./app"));
 const data_source_1 = require("./config/data-source");
 const socket_io_1 = require("socket.io");
+const dotenv = __importStar(require("dotenv"));
+dotenv.config();
 const PORT = process.env.PORT || 3000;
 async function bootstrap() {
     try {
         // Initialize Database Connection
         await data_source_1.AppDataSource.initialize();
-        console.log("🚀 Database connection initialized");
+        console.log("🚀 Custom Database connection initialized");
         // Create HTTP Server
         const server = http_1.default.createServer(app_1.default);
         // Initialize Socket.io
         const io = new socket_io_1.Server(server, {
             cors: {
                 origin: "*",
-                methods: ["GET", "POST"],
-            },
+                methods: ["GET", "POST"]
+            }
         });
         io.on("connection", (socket) => {
-            console.log(`🔌 Socket connected: ${socket.id}`);
+            console.log(`Socket connected: ${socket.id}`);
             // Vendor emitting their live location
             socket.on("vendor:location_update", (data) => {
                 // data = { vendorId, lat, lng }
-                // In production you would store this in Redis
-                // so nearby users can track vendor location
+                // In a real app, save to Redis for fast geospatial queries
+                // Broadcast to users tracking this vendor
                 socket.broadcast.emit(`user:track_vendor_${data.vendorId}`, data);
             });
             // Booking status updates
             socket.on("job:status_update", (data) => {
                 // data = { bookingId, status, vendorId }
+                // Notify the specific user
                 io.emit(`booking:update_${data.bookingId}`, data);
             });
-            // New job request broadcast to vendors
+            // Admin or system broadcasts a new job to nearby vendors
             socket.on("job:new_request", (data) => {
                 // data = { bookingId, serviceDetails, lat, lng }
+                // Notify vendors
                 io.emit("vendor:new_job_alert", data);
             });
             socket.on("disconnect", () => {
-                console.log(`❌ Socket disconnected: ${socket.id}`);
+                console.log(`Socket disconnected: ${socket.id}`);
             });
         });
-        // Start Server
+        // Start listening
         server.listen(PORT, () => {
-            console.log(`🚀 Server running on port ${PORT}`);
+            console.log(`🚀 Server is running on port ${PORT}`);
             console.log(`📄 Swagger Docs available at http://localhost:${PORT}/docs`);
         });
     }
