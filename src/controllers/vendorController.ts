@@ -4,7 +4,7 @@ import { Vendor, VendorStatus } from "../entities/Vendor";
 import { ServiceCategory } from "../entities/ServiceCategory";
 import { In } from "typeorm";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { smsService } from "../services/smsService";
 
 const vendorRepo = AppDataSource.getRepository(Vendor);
