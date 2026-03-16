@@ -1,4 +1,3 @@
-```ts
 import { Router } from "express";
 import {
     sendOtp,
@@ -270,4 +269,3 @@ router.post("/social-login", socialLogin);
 router.post("/verify-email", authenticateJWT, verifyEmail);
 
 export default router;
-```

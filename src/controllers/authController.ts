@@ -23,25 +23,17 @@ export const sendOtp = async (req: Request, res: Response) => {
         const { mobile } = req.body;
         if (!mobile) return res.status(400).json({ message: "Mobile number required" });
 
-<<<<<<< HEAD
-        // TODO: [TESTING MODE] Twilio disabled — hardcoded OTP is 123456
-        // const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        // await smsService.sendOTP(mobile, otp);
+        // Bypass Twilio — hardcoded OTP is 123456
         const otp = "123456";
         console.log(`[AUTH][TESTING] OTP for ${mobile} is ${otp} (Twilio disabled)`);
-
-        res.status(200).json({ message: "OTP sent successfully" });
-=======
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        console.log(`[AUTH] Generated OTP ${otp} for ${mobile}`);
-
+        
+        // Mock save it into memory store
         await smsService.sendOTP(mobile, otp);
 
-        res.status(200).json({
+        res.status(200).json({ 
             message: "OTP sent successfully",
-            mockOtp: process.env.NODE_ENV === "development" ? otp : undefined
+            mockOtp: process.env.NODE_ENV === "development" ? otp : undefined 
         });
->>>>>>> 9221c26a0efbd8c4becbbb9be0cfa40b472f27b3
     } catch (error) {
         res.status(500).json({ message: "Error sending OTP", error });
     }
@@ -52,8 +44,8 @@ export const resendOtp = async (req: Request, res: Response) => {
         const { mobile } = req.body;
         if (!mobile) return res.status(400).json({ message: "Mobile number required" });
 
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        console.log(`[AUTH] Resent OTP ${otp} to ${mobile}`);
+        const otp = "123456";
+        console.log(`[AUTH][TESTING] Resent OTP ${otp} to ${mobile} (Twilio disabled)`);
 
         await smsService.sendOTP(mobile, otp);
 
@@ -310,22 +302,4 @@ export const verifyEmail = async (req: Request, res: Response) => {
         res.status(500).json({ message: "Error verifying email", error });
     }
 };
-<<<<<<< HEAD
 
-export const resendOtp = async (req: Request, res: Response) => {
-    try {
-        const { mobile } = req.body;
-        if (!mobile) return res.status(400).json({ message: "Mobile number required" });
-
-        // TODO: [TESTING MODE] Twilio disabled — hardcoded OTP is 123456
-        // const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        // await smsService.sendOTP(mobile, otp);
-        console.log(`[AUTH][TESTING] Resend OTP for ${mobile} is 123456 (Twilio disabled)`);
-
-        res.status(200).json({ message: "OTP resent successfully" });
-    } catch (error) {
-        res.status(500).json({ message: "Error resending OTP", error });
-    }
-};
-=======
->>>>>>> 9221c26a0efbd8c4becbbb9be0cfa40b472f27b3
