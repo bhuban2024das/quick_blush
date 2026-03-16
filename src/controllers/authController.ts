@@ -2,80 +2,134 @@ import { Request, Response } from "express";
 import { AppDataSource } from "../config/data-source";
 import { User } from "../entities/User";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
 import { smsService } from "../services/smsService";
 
 const userRepository = AppDataSource.getRepository(User);
 const JWT_SECRET = process.env.JWT_SECRET || "super_secret_jwt_key_here";
+const REFRESH_SECRET = process.env.REFRESH_SECRET || "super_secret_refresh_key_here";
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const generateTokens = (id: string, role: string) => {
+    const accessToken = jwt.sign({ id, role }, JWT_SECRET, { expiresIn: "1h" });
+    const refreshToken = jwt.sign({ id, role }, REFRESH_SECRET, { expiresIn: "30d" });
+    return { accessToken, refreshToken };
+};
+
+// ─── OTP Flow ────────────────────────────────────────────────────────────────
 
 export const sendOtp = async (req: Request, res: Response) => {
     try {
         const { mobile } = req.body;
         if (!mobile) return res.status(400).json({ message: "Mobile number required" });
 
-        // Generate OTP and send (we send it regardless of whether they exist)
+<<<<<<< HEAD
+        // TODO: [TESTING MODE] Twilio disabled — hardcoded OTP is 123456
+        // const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        // await smsService.sendOTP(mobile, otp);
+        const otp = "123456";
+        console.log(`[AUTH][TESTING] OTP for ${mobile} is ${otp} (Twilio disabled)`);
+
+        res.status(200).json({ message: "OTP sent successfully" });
+=======
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        // Here we'd typically store the OTP in Redis with an expiry
         console.log(`[AUTH] Generated OTP ${otp} for ${mobile}`);
 
         await smsService.sendOTP(mobile, otp);
 
-        res.status(200).json({ message: "OTP sent successfully", mockOtp: process.env.NODE_ENV === "development" ? otp : undefined });
+        res.status(200).json({
+            message: "OTP sent successfully",
+            mockOtp: process.env.NODE_ENV === "development" ? otp : undefined
+        });
+>>>>>>> 9221c26a0efbd8c4becbbb9be0cfa40b472f27b3
     } catch (error) {
         res.status(500).json({ message: "Error sending OTP", error });
+    }
+};
+
+export const resendOtp = async (req: Request, res: Response) => {
+    try {
+        const { mobile } = req.body;
+        if (!mobile) return res.status(400).json({ message: "Mobile number required" });
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        console.log(`[AUTH] Resent OTP ${otp} to ${mobile}`);
+
+        await smsService.sendOTP(mobile, otp);
+
+        res.status(200).json({
+            message: "OTP resent successfully",
+            mockOtp: process.env.NODE_ENV === "development" ? otp : undefined
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error resending OTP", error });
     }
 };
 
 export const verifyOtp = async (req: Request, res: Response) => {
     try {
         const { mobile, otp } = req.body;
-        // Mock validation, real one should check redis
+
+        if (!mobile || !otp) {
+            return res.status(400).json({ message: "Mobile number and OTP are required" });
+        }
+
+        // Mock validation — replace with Redis lookup in production
         if (otp !== "123456") return res.status(400).json({ message: "Invalid OTP" });
 
         let user = await userRepository.findOneBy({ mobile });
         let isNewUser = false;
 
         if (!user) {
-            // First time verifying number: create barebones shell user
             user = userRepository.create({ mobile, isVerified: true });
-            await userRepository.save(user);
             isNewUser = true;
         }
 
-        // Regardless of new or existing, issue a token
-        const token = jwt.sign({ id: user.id, role: "USER" }, JWT_SECRET, { expiresIn: "7d" });
+        const { accessToken, refreshToken } = generateTokens(user.id || "tmp", "USER");
 
-        // If they don't have a name/email/password setup yet, they need to register
-        const needsRegistration = !user.name || !user.password;
+        // Persist refresh token
+        user.refreshToken = refreshToken;
+        await userRepository.save(user);
+
+        const needsRegistration = !user.name;
 
         if (isNewUser || needsRegistration) {
-            res.status(200).json({
+            return res.status(200).json({
                 message: "OTP verified. Proceed to register details.",
-                token,
+                accessToken,
+                refreshToken,
                 user,
                 needsRegistration: true
             });
-        } else {
-            res.status(200).json({
-                message: "Login successful",
-                token,
-                user,
-                needsRegistration: false
-            });
         }
+
+        return res.status(200).json({
+            message: "Login successful",
+            accessToken,
+            refreshToken,
+            user,
+            needsRegistration: false
+        });
     } catch (error) {
         res.status(500).json({ message: "Error verifying OTP", error });
     }
 };
 
+// ─── Registration ─────────────────────────────────────────────────────────────
+
+/**
+ * POST /auth/register-details  (protected)
+ * Called after OTP verification when needsRegistration === true.
+ * Requires: name
+ * Optional: email, gender, photo
+ */
 export const registerUser = async (req: Request, res: Response) => {
     try {
-        // User must be authenticated (have verified OTP and obtained token)
         const userId = (req as any).user.id;
-        const { name, email, password, gender, photo } = req.body;
+        const { name, email, gender, photo } = req.body;
 
-        if (!name || !password) {
-            return res.status(400).json({ message: "Name and password are required" });
+        if (!name) {
+            return res.status(400).json({ message: "Name is required" });
         }
 
         const user = await userRepository.findOneBy({ id: userId });
@@ -83,7 +137,6 @@ export const registerUser = async (req: Request, res: Response) => {
 
         if (email) {
             const existingEmail = await userRepository.findOneBy({ email });
-            // ensure we aren't clashing with another user
             if (existingEmail && existingEmail.id !== userId) {
                 return res.status(400).json({ message: "Email is already in use" });
             }
@@ -91,14 +144,12 @@ export const registerUser = async (req: Request, res: Response) => {
         }
 
         user.name = name;
-        user.password = await bcrypt.hash(password, 10);
-
         if (gender) user.gender = gender;
         if (photo) user.photo = photo;
 
         await userRepository.save(user);
 
-        res.status(200).json({
+        return res.status(200).json({
             message: "User registration completed successfully",
             user: {
                 id: user.id,
@@ -114,121 +165,115 @@ export const registerUser = async (req: Request, res: Response) => {
     }
 };
 
-export const login = async (req: Request, res: Response) => {
+// ─── Token ────────────────────────────────────────────────────────────────────
+
+/**
+ * GET /auth/validate-token  (public)
+ * Checks whether the Bearer access token is valid.
+ * Always returns HTTP 200 — check `valid` in response body.
+ */
+export const validateToken = async (req: Request, res: Response) => {
     try {
-        const { emailOrMobile, password } = req.body;
+        const authHeader = req.headers.authorization;
 
-        if (!emailOrMobile || !password) {
-            return res.status(400).json({ message: "Email/Mobile and password are required" });
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return res.status(200).json({ valid: false, message: "No token provided" });
         }
 
-        // Check if the identifier is an email (contains @) or mobile
-        const isEmail = emailOrMobile.includes("@");
+        const token = authHeader.split(" ")[1];
 
-        const user = await userRepository.findOne({
-            where: isEmail ? { email: emailOrMobile } : { mobile: emailOrMobile }
+        let decoded: any;
+        try {
+            decoded = jwt.verify(token, JWT_SECRET);
+        } catch {
+            return res.status(200).json({ valid: false, message: "Invalid or expired token" });
+        }
+
+        const user = await userRepository.findOneBy({ id: decoded.id });
+        if (!user) {
+            return res.status(200).json({ valid: false, message: "User not found" });
+        }
+
+        return res.status(200).json({
+            valid: true,
+            user: {
+                id: user.id,
+                name: user.name,
+                mobile: user.mobile,
+                email: user.email,
+                gender: user.gender,
+                photo: user.photo,
+                isVerified: user.isVerified,
+                walletBalance: user.walletBalance
+            }
         });
-
-        if (!user || (!user.password)) {
-            return res.status(400).json({ message: "Invalid credentials" });
-        }
-
-        // Compare the provided password with the hashed one
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
-
-        const token = jwt.sign({ id: user.id, role: "USER" }, JWT_SECRET, { expiresIn: "7d" });
-
-        res.status(200).json({ message: "Login successful", token, user });
     } catch (error) {
-        res.status(500).json({ message: "Error during login", error });
+        res.status(500).json({ message: "Error validating token", error });
     }
 };
 
-export const logout = async (req: Request, res: Response) => {
-    // Usually handled client side by dropping token or invalidating in Redis
-    res.status(200).json({ message: "Logout successful" });
-};
-
+/**
+ * POST /auth/refresh-token  (public)
+ * Accepts a refresh token, validates it against the DB, and issues a new access + refresh token pair.
+ */
 export const refreshToken = async (req: Request, res: Response) => {
-    res.status(200).json({ message: "Refresh token endpoint" });
+    try {
+        const { refreshToken: token } = req.body;
+
+        if (!token) {
+            return res.status(400).json({ message: "Refresh token is required" });
+        }
+
+        let decoded: any;
+        try {
+            decoded = jwt.verify(token, REFRESH_SECRET);
+        } catch {
+            return res.status(401).json({ message: "Invalid or expired refresh token" });
+        }
+
+        const user = await userRepository.findOneBy({ id: decoded.id });
+        if (!user || user.refreshToken !== token) {
+            return res.status(401).json({ message: "Refresh token mismatch or user not found" });
+        }
+
+        // Rotate tokens
+        const { accessToken, refreshToken: newRefreshToken } = generateTokens(user.id, decoded.role);
+        user.refreshToken = newRefreshToken;
+        await userRepository.save(user);
+
+        return res.status(200).json({
+            message: "Tokens refreshed successfully",
+            accessToken,
+            refreshToken: newRefreshToken
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error refreshing token", error });
+    }
 };
 
-export const socialLogin = async (req: Request, res: Response) => {
+// ─── Session ──────────────────────────────────────────────────────────────────
+
+export const logout = async (req: Request, res: Response) => {
+    try {
+        const userId = (req as any).user?.id;
+        if (userId) {
+            const user = await userRepository.findOneBy({ id: userId });
+            if (user) {
+                user.refreshToken = "";
+                await userRepository.save(user);
+            }
+        }
+        res.status(200).json({ message: "Logout successful" });
+    } catch (error) {
+        res.status(500).json({ message: "Error during logout", error });
+    }
+};
+
+export const socialLogin = async (_req: Request, res: Response) => {
     res.status(200).json({ message: "Social login endpoint" });
 };
 
-export const changePassword = async (req: Request, res: Response) => {
-    try {
-        const userId = (req as any).user.id;
-        const { currentPassword, newPassword } = req.body;
-
-        const user = await userRepository.findOneBy({ id: userId });
-        if (!user) return res.status(404).json({ message: "User not found" });
-
-        // If user never had a password (OTP login only), current password isn't required
-        if (user.password) {
-            if (!currentPassword) return res.status(400).json({ message: "Current password is required" });
-            const isMatch = await bcrypt.compare(currentPassword, user.password);
-            if (!isMatch) return res.status(400).json({ message: "Invalid current password" });
-        }
-
-        user.password = await bcrypt.hash(newPassword, 10);
-        await userRepository.save(user);
-
-        res.status(200).json({ message: "Password updated successfully" });
-    } catch (error) {
-        res.status(500).json({ message: "Error changing password", error });
-    }
-};
-
-export const forgotPassword = async (req: Request, res: Response) => {
-    try {
-        const { email } = req.body;
-        if (!email) return res.status(400).json({ message: "Email is required" });
-
-        const user = await userRepository.findOneBy({ email });
-        if (!user) return res.status(404).json({ message: "User not found" });
-
-        // Generate a 6-digit reset OTP
-        const resetOtp = Math.floor(100000 + Math.random() * 900000).toString();
-        // Typically store resetOtp in Redis with an expiry mapped to user email
-        console.log(`[AUTH] Password Reset OTP ${resetOtp} generated for ${email}`);
-
-        // In a real scenario, this would send an email. For now, we simulate success.
-        res.status(200).json({
-            message: "Password reset OTP sent to email",
-            mockOtp: process.env.NODE_ENV === "development" ? resetOtp : undefined
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Error in forgot password", error });
-    }
-};
-
-export const resetPassword = async (req: Request, res: Response) => {
-    try {
-        const { email, otp, newPassword } = req.body;
-
-        if (!email || !otp || !newPassword) {
-            return res.status(400).json({ message: "Email, OTP, and new password are required" });
-        }
-
-        // Mock OTP validation (in reality, check Redis)
-        if (otp !== "123456") {
-            return res.status(400).json({ message: "Invalid or expired OTP" });
-        }
-
-        const user = await userRepository.findOneBy({ email });
-        if (!user) return res.status(404).json({ message: "User not found" });
-
-        user.password = await bcrypt.hash(newPassword, 10);
-        await userRepository.save(user);
-
-        res.status(200).json({ message: "Password reset successfully" });
-    } catch (error) {
-        res.status(500).json({ message: "Error resetting password", error });
-    }
-};
+// ─── Email Verification ───────────────────────────────────────────────────────
 
 export const verifyEmail = async (req: Request, res: Response) => {
     try {
@@ -239,51 +284,48 @@ export const verifyEmail = async (req: Request, res: Response) => {
         if (!user) return res.status(404).json({ message: "User not found" });
 
         if (!otp) {
-            // Step 1: Request OTP
+            // Step 1: Send OTP to the provided email
             if (!email) return res.status(400).json({ message: "Email is required to send verification OTP" });
 
             const verificationOtp = Math.floor(100000 + Math.random() * 900000).toString();
             console.log(`[AUTH] Email Verification OTP ${verificationOtp} generated for ${email}`);
 
-            // Replace with actual email service call later
             return res.status(200).json({
                 message: "Verification OTP sent to email",
                 mockOtp: process.env.NODE_ENV === "development" ? verificationOtp : undefined
             });
-        } else {
-            // Step 2: Verify OTP
-            // Mock validation
-            if (otp !== "123456") {
-                return res.status(400).json({ message: "Invalid or expired OTP" });
-            }
-
-            user.isVerified = true;
-            if (email) user.email = email;
-            await userRepository.save(user);
-
-            return res.status(200).json({ message: "Email verified successfully" });
         }
+
+        // Step 2: Verify the OTP
+        if (otp !== "123456") {
+            return res.status(400).json({ message: "Invalid or expired OTP" });
+        }
+
+        user.isVerified = true;
+        if (email) user.email = email;
+        await userRepository.save(user);
+
+        return res.status(200).json({ message: "Email verified successfully" });
     } catch (error) {
         res.status(500).json({ message: "Error verifying email", error });
     }
 };
+<<<<<<< HEAD
 
 export const resendOtp = async (req: Request, res: Response) => {
     try {
         const { mobile } = req.body;
         if (!mobile) return res.status(400).json({ message: "Mobile number required" });
 
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        // Here we'd typically store the OTP in Redis with an expiry
-        console.log(`[AUTH] Resent OTP ${otp} to ${mobile}`);
+        // TODO: [TESTING MODE] Twilio disabled — hardcoded OTP is 123456
+        // const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        // await smsService.sendOTP(mobile, otp);
+        console.log(`[AUTH][TESTING] Resend OTP for ${mobile} is 123456 (Twilio disabled)`);
 
-        await smsService.sendOTP(mobile, otp);
-
-        res.status(200).json({
-            message: "OTP resent successfully",
-            mockOtp: process.env.NODE_ENV === "development" ? otp : undefined
-        });
+        res.status(200).json({ message: "OTP resent successfully" });
     } catch (error) {
         res.status(500).json({ message: "Error resending OTP", error });
     }
 };
+=======
+>>>>>>> 9221c26a0efbd8c4becbbb9be0cfa40b472f27b3

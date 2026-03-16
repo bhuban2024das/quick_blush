@@ -26,6 +26,9 @@ export class User {
     @Column({ type: "boolean", default: false })
     isVerified!: boolean;
 
+    @Column({ type: "text", nullable: true })
+    refreshToken!: string;
+
     @Column({ type: "jsonb", nullable: true })
     addressBook!: any; // e.g. [{ address: '...', pincode: '...' }]
 

@@ -1,0 +1,841 @@
+{
+  "info": {
+    "name": "Quick Blush - Live API Collection",
+    "description": "Complete Postman collection for Quick Blush backend. Base URL: http://quickblush.in\n\nAfter calling /api/auth/verify-otp, copy the 'token' from the response and paste it into the JWT_TOKEN collection variable to authorize all protected endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "BASE_URL", "value": "http://quickblush.in", "type": "string" },
+    { "key": "JWT_TOKEN", "value": "paste_your_user_jwt_token_here", "type": "string" },
+    { "key": "VENDOR_TOKEN", "value": "paste_your_vendor_jwt_token_here", "type": "string" },
+    { "key": "ADMIN_TOKEN", "value": "paste_your_admin_jwt_token_here", "type": "string" },
+    { "key": "BOOKING_ID", "value": "booking_uuid_here", "type": "string" },
+    { "key": "VENDOR_ID", "value": "vendor_uuid_here", "type": "string" },
+    { "key": "SERVICE_ID", "value": "service_id_here", "type": "string" },
+    { "key": "CATEGORY_ID", "value": "category_id_here", "type": "string" },
+    { "key": "ADDRESS_ID", "value": "address_uuid_here", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "🛠 System",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{BASE_URL}}/health", "host": ["{{BASE_URL}}"], "path": ["health"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔐 Auth",
+      "item": [
+        {
+          "name": "Send OTP",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n    \"mobile\": \"9999999990\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/auth/send-otp", "host": ["{{BASE_URL}}"], "path": ["api", "auth", "send-otp"] }
+          }
+        },
+        {
+          "name": "Verify OTP (Login / Register)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n    \"mobile\": \"9999999990\",\n    \"otp\": \"123456\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/auth/verify-otp", "host": ["{{BASE_URL}}"], "path": ["api", "auth", "verify-otp"] }
+          }
+        },
+        {
+          "name": "Resend OTP",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n    \"mobile\": \"9999999990\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/auth/resend-otp", "host": ["{{BASE_URL}}"], "path": ["api", "auth", "resend-otp"] }
+          }
+        },
+        {
+          "name": "Complete Registration (After OTP)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"name\": \"Jane Doe\",\n    \"email\": \"jane@example.com\",\n    \"password\": \"SecurePass123!\",\n    \"gender\": \"FEMALE\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/auth/register-details", "host": ["{{BASE_URL}}"], "path": ["api", "auth", "register-details"] }
+          }
+        },
+        {
+          "name": "Login with Email & Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n    \"emailOrMobile\": \"jane@example.com\",\n    \"password\": \"SecurePass123!\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/auth/login", "host": ["{{BASE_URL}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/auth/logout", "host": ["{{BASE_URL}}"], "path": ["api", "auth", "logout"] }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n    \"refreshToken\": \"your_refresh_token_here\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/auth/refresh-token", "host": ["{{BASE_URL}}"], "path": ["api", "auth", "refresh-token"] }
+          }
+        },
+        {
+          "name": "Social Login (Google/Facebook)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n    \"provider\": \"GOOGLE\",\n    \"idToken\": \"google_id_token_here\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/auth/social-login", "host": ["{{BASE_URL}}"], "path": ["api", "auth", "social-login"] }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"currentPassword\": \"OldPass123!\",\n    \"newPassword\": \"NewPass456!\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/auth/change-password", "host": ["{{BASE_URL}}"], "path": ["api", "auth", "change-password"] }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n    \"email\": \"jane@example.com\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/auth/forgot-password", "host": ["{{BASE_URL}}"], "path": ["api", "auth", "forgot-password"] }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n    \"email\": \"jane@example.com\",\n    \"otp\": \"123456\",\n    \"newPassword\": \"NewPass456!\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/auth/reset-password", "host": ["{{BASE_URL}}"], "path": ["api", "auth", "reset-password"] }
+          }
+        },
+        {
+          "name": "Verify Email (Send Code)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"email\": \"jane@example.com\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/auth/verify-email", "host": ["{{BASE_URL}}"], "path": ["api", "auth", "verify-email"] }
+          }
+        },
+        {
+          "name": "Verify Email (Confirm Code)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"email\": \"jane@example.com\",\n    \"otp\": \"123456\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/auth/verify-email", "host": ["{{BASE_URL}}"], "path": ["api", "auth", "verify-email"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 User Profile",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/users/profile", "host": ["{{BASE_URL}}"], "path": ["api", "users", "profile"] }
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"name\": \"Jane Doe Updated\",\n    \"email\": \"jane.updated@example.com\",\n    \"gender\": \"FEMALE\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/users/profile", "host": ["{{BASE_URL}}"], "path": ["api", "users", "profile"] }
+          }
+        },
+        {
+          "name": "Delete My Account",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/users/profile/delete", "host": ["{{BASE_URL}}"], "path": ["api", "users", "profile", "delete"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📍 User Address Book",
+      "item": [
+        {
+          "name": "Get All My Addresses",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/users/address", "host": ["{{BASE_URL}}"], "path": ["api", "users", "address"] }
+          }
+        },
+        {
+          "name": "Add a New Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"type\": \"HOME\",\n    \"street\": \"123 MG Road\",\n    \"city\": \"Mumbai\",\n    \"state\": \"Maharashtra\",\n    \"zipCode\": \"400001\",\n    \"landmark\": \"Near Metro Station\",\n    \"lat\": 19.0760,\n    \"lng\": 72.8777\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/users/address/add", "host": ["{{BASE_URL}}"], "path": ["api", "users", "address", "add"] }
+          }
+        },
+        {
+          "name": "Update Address",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"type\": \"WORK\",\n    \"street\": \"456 BKC\",\n    \"city\": \"Mumbai\",\n    \"state\": \"Maharashtra\",\n    \"zipCode\": \"400051\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/users/address/update/{{ADDRESS_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "users", "address", "update", "{{ADDRESS_ID}}"] }
+          }
+        },
+        {
+          "name": "Delete Address",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/users/address/delete/{{ADDRESS_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "users", "address", "delete", "{{ADDRESS_ID}}"] }
+          }
+        },
+        {
+          "name": "Set Default Address",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/users/address/set-default/{{ADDRESS_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "users", "address", "set-default", "{{ADDRESS_ID}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🧑‍🔧 Vendors",
+      "item": [
+        {
+          "name": "Register as Vendor",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n    \"name\": \"Rahul Sharma\",\n    \"email\": \"rahul@salon.com\",\n    \"mobile\": \"9876543210\",\n    \"password\": \"VendorPass123!\",\n    \"address\": \"123 MG Road, Mumbai\",\n    \"age\": 28,\n    \"experienceYears\": 5,\n    \"serviceCategoryIds\": [\"{{CATEGORY_ID}}\"]\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/vendors/register", "host": ["{{BASE_URL}}"], "path": ["api", "vendors", "register"] }
+          }
+        },
+        {
+          "name": "Vendor Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n    \"mobile\": \"9876543210\",\n    \"otp\": \"123456\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/vendors/verify-otp", "host": ["{{BASE_URL}}"], "path": ["api", "vendors", "verify-otp"] }
+          }
+        },
+        {
+          "name": "Vendor Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n    \"email\": \"rahul@salon.com\",\n    \"password\": \"VendorPass123!\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/vendors/login", "host": ["{{BASE_URL}}"], "path": ["api", "vendors", "login"] }
+          }
+        },
+        {
+          "name": "Get Vendor Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{VENDOR_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/vendors/profile", "host": ["{{BASE_URL}}"], "path": ["api", "vendors", "profile"] }
+          }
+        },
+        {
+          "name": "Update Vendor Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{VENDOR_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"name\": \"Rahul Sharma Updated\",\n    \"bio\": \"10 years experienced hair stylist\",\n    \"isAvailable\": true\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/vendors/profile", "host": ["{{BASE_URL}}"], "path": ["api", "vendors", "profile"] }
+          }
+        },
+        {
+          "name": "Upload Vendor Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{VENDOR_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"documentUrl\": \"https://your-s3-bucket.s3.amazonaws.com/docs/id-proof.jpg\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/vendors/document", "host": ["{{BASE_URL}}"], "path": ["api", "vendors", "document"] }
+          }
+        },
+        {
+          "name": "Get Current Subscription",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{VENDOR_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/vendors/subscription", "host": ["{{BASE_URL}}"], "path": ["api", "vendors", "subscription"] }
+          }
+        },
+        {
+          "name": "Purchase Subscription Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{VENDOR_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"planId\": \"GOLD\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/vendors/subscription/purchase", "host": ["{{BASE_URL}}"], "path": ["api", "vendors", "subscription", "purchase"] }
+          }
+        },
+        {
+          "name": "Get Pending Jobs",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{VENDOR_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/vendors/jobs/pending", "host": ["{{BASE_URL}}"], "path": ["api", "vendors", "jobs", "pending"] }
+          }
+        },
+        {
+          "name": "Accept a Job",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{VENDOR_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/vendors/jobs/{{BOOKING_ID}}/accept", "host": ["{{BASE_URL}}"], "path": ["api", "vendors", "jobs", "{{BOOKING_ID}}", "accept"] }
+          }
+        },
+        {
+          "name": "Reject a Job",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{VENDOR_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/vendors/jobs/{{BOOKING_ID}}/reject", "host": ["{{BASE_URL}}"], "path": ["api", "vendors", "jobs", "{{BOOKING_ID}}", "reject"] }
+          }
+        },
+        {
+          "name": "Update Job Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{VENDOR_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"status\": \"EN_ROUTE\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/vendors/jobs/{{BOOKING_ID}}/status", "host": ["{{BASE_URL}}"], "path": ["api", "vendors", "jobs", "{{BOOKING_ID}}", "status"] }
+          }
+        },
+        {
+          "name": "Get Earnings Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{VENDOR_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/vendors/earnings", "host": ["{{BASE_URL}}"], "path": ["api", "vendors", "earnings"] }
+          }
+        },
+        {
+          "name": "Request Payout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{VENDOR_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"amount\": 5000\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/vendors/earnings/payout", "host": ["{{BASE_URL}}"], "path": ["api", "vendors", "earnings", "payout"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👑 Admin",
+      "item": [
+        {
+          "name": "Admin Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n    \"email\": \"admin@quickblush.in\",\n    \"password\": \"AdminPassword123!\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/admin/login", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "login"] }
+          }
+        },
+        {
+          "name": "Get All Vendors",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/admin/vendors", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "vendors"] }
+          }
+        },
+        {
+          "name": "Approve Vendor",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/admin/vendors/{{VENDOR_ID}}/approve", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "vendors", "{{VENDOR_ID}}", "approve"] }
+          }
+        },
+        {
+          "name": "Create Product Kit",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"name\": \"Basic Salon Starter Kit\",\n    \"price\": 2500\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/admin/kits", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "kits"] }
+          }
+        },
+        {
+          "name": "Get All Purchases",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/admin/purchases", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "purchases"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "💇 Services & Catalog",
+      "item": [
+        {
+          "name": "Get All Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{BASE_URL}}/api/services/categories", "host": ["{{BASE_URL}}"], "path": ["api", "services", "categories"] }
+          }
+        },
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n    \"id\": \"HAIRCUTS\",\n    \"name\": \"Haircuts & Styling\",\n    \"description\": \"All types of hair services\",\n    \"imageUrl\": \"https://s3.amazonaws.com/haircuts.png\",\n    \"isActive\": true\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/services/categories", "host": ["{{BASE_URL}}"], "path": ["api", "services", "categories"] }
+          }
+        },
+        {
+          "name": "Get Services by Category",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{BASE_URL}}/api/services/categories/{{CATEGORY_ID}}/services", "host": ["{{BASE_URL}}"], "path": ["api", "services", "categories", "{{CATEGORY_ID}}", "services"] }
+          }
+        },
+        {
+          "name": "Create a Service",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n    \"id\": \"MENS_HAIRCUT\",\n    \"name\": \"Men's Classic Haircut\",\n    \"description\": \"Scissor cut with styling\",\n    \"categoryId\": \"HAIRCUTS\",\n    \"silverPrice\": 299,\n    \"goldPrice\": 399,\n    \"platinumPrice\": 499,\n    \"productCost\": 50,\n    \"durationMinutes\": 30,\n    \"isActive\": true\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/services", "host": ["{{BASE_URL}}"], "path": ["api", "services"] }
+          }
+        },
+        {
+          "name": "Get Service by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{BASE_URL}}/api/services/{{SERVICE_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "services", "{{SERVICE_ID}}"] }
+          }
+        },
+        {
+          "name": "Search Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{BASE_URL}}/api/services/search?query=haircut", "host": ["{{BASE_URL}}"], "path": ["api", "services", "search"], "query": [{ "key": "query", "value": "haircut" }] }
+          }
+        },
+        {
+          "name": "Get Addons for a Service",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{BASE_URL}}/api/services/{{SERVICE_ID}}/addons", "host": ["{{BASE_URL}}"], "path": ["api", "services", "{{SERVICE_ID}}", "addons"] }
+          }
+        },
+        {
+          "name": "Create Service Addon",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n    \"id\": \"PREMIUM_SHAMPOO\",\n    \"serviceId\": \"{{SERVICE_ID}}\",\n    \"name\": \"Premium Shampoo Treatment\",\n    \"price\": 99,\n    \"isActive\": true\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/services/addons", "host": ["{{BASE_URL}}"], "path": ["api", "services", "addons"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📅 Bookings",
+      "item": [
+        {
+          "name": "Estimate Price",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/bookings/estimate-price?serviceId={{SERVICE_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "estimate-price"], "query": [{ "key": "serviceId", "value": "{{SERVICE_ID}}" }] }
+          }
+        },
+        {
+          "name": "Create Scheduled Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"serviceId\": \"{{SERVICE_ID}}\",\n    \"scheduledDate\": \"2026-03-25\",\n    \"scheduledTime\": \"14:30:00\",\n    \"address\": \"123 MG Road, Mumbai\",\n    \"lat\": 19.0760,\n    \"lng\": 72.8777,\n    \"customerNotes\": \"Please bring your own scissors\",\n    \"addons\": [\n        { \"name\": \"Premium Shampoo\", \"price\": 99 }\n    ]\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/bookings/create", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "create"] }
+          }
+        },
+        {
+          "name": "Create Instant Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"serviceId\": \"{{SERVICE_ID}}\",\n    \"address\": \"123 MG Road, Mumbai\",\n    \"lat\": 19.0760,\n    \"lng\": 72.8777,\n    \"customerNotes\": \"Ring the bell twice\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/bookings/instant", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "instant"] }
+          }
+        },
+        {
+          "name": "Get Upcoming Bookings",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/bookings/upcoming", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "upcoming"] }
+          }
+        },
+        {
+          "name": "Get Booking History",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/bookings/history", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "history"] }
+          }
+        },
+        {
+          "name": "Get Booking Status",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/bookings/status?bookingId={{BOOKING_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "status"], "query": [{ "key": "bookingId", "value": "{{BOOKING_ID}}" }] }
+          }
+        },
+        {
+          "name": "Get Booking Timeline",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/bookings/timeline?bookingId={{BOOKING_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "timeline"], "query": [{ "key": "bookingId", "value": "{{BOOKING_ID}}" }] }
+          }
+        },
+        {
+          "name": "Get Customer Notes",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/bookings/customer-notes?bookingId={{BOOKING_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "customer-notes"], "query": [{ "key": "bookingId", "value": "{{BOOKING_ID}}" }] }
+          }
+        },
+        {
+          "name": "Get Vendor Live Location",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/bookings/vendor-location?vendorId={{VENDOR_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "vendor-location"], "query": [{ "key": "vendorId", "value": "{{VENDOR_ID}}" }] }
+          }
+        },
+        {
+          "name": "Get Invoice",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/bookings/invoice?bookingId={{BOOKING_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "invoice"], "query": [{ "key": "bookingId", "value": "{{BOOKING_ID}}" }] }
+          }
+        },
+        {
+          "name": "Get Booking Details by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/bookings/{{BOOKING_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "{{BOOKING_ID}}"] }
+          }
+        },
+        {
+          "name": "Confirm Booking (After Payment)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"bookingId\": \"{{BOOKING_ID}}\",\n    \"transactionId\": \"txn_1234567890\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/bookings/confirm", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "confirm"] }
+          }
+        },
+        {
+          "name": "Cancel Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"bookingId\": \"{{BOOKING_ID}}\",\n    \"reason\": \"Plans changed\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/bookings/cancel", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "cancel"] }
+          }
+        },
+        {
+          "name": "Reschedule Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"bookingId\": \"{{BOOKING_ID}}\",\n    \"newDate\": \"2026-03-28\",\n    \"newTime\": \"11:00:00\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/bookings/reschedule", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "reschedule"] }
+          }
+        },
+        {
+          "name": "Reassign Vendor",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"bookingId\": \"{{BOOKING_ID}}\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/bookings/reassign-vendor", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "reassign-vendor"] }
+          }
+        },
+        {
+          "name": "Rebook (Copy Previous Booking)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"previousBookingId\": \"{{BOOKING_ID}}\",\n    \"scheduledDate\": \"2026-04-01\",\n    \"scheduledTime\": \"10:00:00\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/bookings/rebook", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "rebook"] }
+          }
+        },
+        {
+          "name": "Assign Vendor to Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"bookingId\": \"{{BOOKING_ID}}\",\n    \"vendorId\": \"{{VENDOR_ID}}\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/bookings/assign-vendor", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "assign-vendor"] }
+          }
+        },
+        {
+          "name": "Mark Vendor En Route",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{VENDOR_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"bookingId\": \"{{BOOKING_ID}}\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/bookings/en-route", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "en-route"] }
+          }
+        },
+        {
+          "name": "Mark Vendor Arrived",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{VENDOR_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"bookingId\": \"{{BOOKING_ID}}\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/bookings/arrived", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "arrived"] }
+          }
+        },
+        {
+          "name": "Start Service",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{VENDOR_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"bookingId\": \"{{BOOKING_ID}}\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/bookings/start", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "start"] }
+          }
+        },
+        {
+          "name": "End Service",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{VENDOR_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"bookingId\": \"{{BOOKING_ID}}\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/bookings/end", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "end"] }
+          }
+        },
+        {
+          "name": "Complete Booking (Finalize)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"bookingId\": \"{{BOOKING_ID}}\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/bookings/complete", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "complete"] }
+          }
+        },
+        {
+          "name": "Add Addon to Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{VENDOR_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"bookingId\": \"{{BOOKING_ID}}\",\n    \"addonName\": \"Extra Deep Conditioning\",\n    \"price\": 150\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/bookings/add-addon", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "add-addon"] }
+          }
+        },
+        {
+          "name": "Remove Addon from Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{VENDOR_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"bookingId\": \"{{BOOKING_ID}}\",\n    \"addonId\": \"addon_uuid_here\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/bookings/remove-addon", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "remove-addon"] }
+          }
+        },
+        {
+          "name": "Tip the Vendor",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"bookingId\": \"{{BOOKING_ID}}\",\n    \"tipAmount\": 100\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/bookings/tip", "host": ["{{BASE_URL}}"], "path": ["api", "bookings", "tip"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "💳 Payments",
+      "item": [
+        {
+          "name": "Initiate Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"bookingId\": \"{{BOOKING_ID}}\",\n    \"amount\": 499,\n    \"paymentMethod\": \"UPI\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/payments/initiate", "host": ["{{BASE_URL}}"], "path": ["api", "payments", "initiate"] }
+          }
+        },
+        {
+          "name": "Verify Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"paymentId\": \"pay_XXXXXXXXXXXXXX\",\n    \"signature\": \"payment_signature_from_gateway\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/payments/verify", "host": ["{{BASE_URL}}"], "path": ["api", "payments", "verify"] }
+          }
+        },
+        {
+          "name": "Apply Referral Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n    \"referralCode\": \"QUICKBLUSH50\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/api/payments/referral", "host": ["{{BASE_URL}}"], "path": ["api", "payments", "referral"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📸 File Uploads",
+      "item": [
+        {
+          "name": "Upload Media File (Image/Document)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "file", "type": "file", "src": "" }]
+            },
+            "url": { "raw": "{{BASE_URL}}/api/uploads", "host": ["{{BASE_URL}}"], "path": ["api", "uploads"] }
+          }
+        }
+      ]
+    }
+  ]
+}

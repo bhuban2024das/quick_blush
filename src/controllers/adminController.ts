@@ -18,6 +18,13 @@ const serviceRepo = AppDataSource.getRepository(Service);
 const purchaseRepo = AppDataSource.getRepository(VendorPurchase);
 
 const JWT_SECRET = process.env.JWT_SECRET || "super_secret_jwt_key_here";
+const REFRESH_SECRET = process.env.REFRESH_SECRET || "super_secret_refresh_key_here";
+
+const generateTokens = (id: string, role: string) => {
+    const accessToken = jwt.sign({ id, role }, JWT_SECRET, { expiresIn: "1h" });
+    const refreshToken = jwt.sign({ id, role }, REFRESH_SECRET, { expiresIn: "30d" });
+    return { accessToken, refreshToken };
+};
 
 export const loginAdmin = async (req: Request, res: Response) => {
     try {
@@ -29,8 +36,8 @@ export const loginAdmin = async (req: Request, res: Response) => {
             return res.status(401).json({ message: "Invalid credentials" });
         }
 
-        const token = jwt.sign({ id: admin.id, role: "ADMIN" }, JWT_SECRET, { expiresIn: "1d" });
-        res.status(200).json({ message: "Admin login successful", token });
+        const { accessToken, refreshToken } = generateTokens(admin.id, "ADMIN");
+        res.status(200).json({ message: "Admin login successful", accessToken, refreshToken });
     } catch (error) {
         res.status(500).json({ message: "Login failed", error });
     }

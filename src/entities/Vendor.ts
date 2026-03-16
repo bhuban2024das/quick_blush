@@ -88,6 +88,9 @@ export class Vendor {
     @Column({ type: "boolean", default: false })
     isVerified!: boolean;
 
+    @Column({ type: "text", nullable: true })
+    refreshToken!: string;
+
     @CreateDateColumn()
     createdAt!: Date;
 

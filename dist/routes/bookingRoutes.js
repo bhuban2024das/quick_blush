@@ -1,0 +1,672 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const authMiddleware_1 = require("../middlewares/authMiddleware");
+const bookingController_1 = require("../controllers/bookingController");
+const router = (0, express_1.Router)();
+// Secure all booking routes
+router.use(authMiddleware_1.authenticateJWT);
+/**
+ * @swagger
+ * tags:
+ *   name: Bookings
+ *   description: Core booking module containing 20+ operations for lifecycle execution
+ */
+// --- CREATION & PRICING ---
+/**
+ * @swagger
+ * /api/bookings/create:
+ *   post:
+ *     summary: Create a scheduled booking
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - serviceId
+ *               - scheduledDate
+ *               - scheduledTime
+ *               - address
+ *               - lat
+ *               - lng
+ *             properties:
+ *               serviceId:
+ *                 type: string
+ *               scheduledDate:
+ *                 type: string
+ *                 format: date
+ *               scheduledTime:
+ *                 type: string
+ *                 example: "14:30:00"
+ *               address:
+ *                 type: string
+ *               lat:
+ *                 type: number
+ *               lng:
+ *                 type: number
+ *               customerNotes:
+ *                 type: string
+ *               addons:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                     price:
+ *                       type: number
+ *     responses:
+ *       201:
+ *         description: Booking created successfully in PENDING_PAYMENT state
+ *       400:
+ *         description: Missing required fields
+ */
+router.post("/create", bookingController_1.createBooking);
+/**
+ * @swagger
+ * /api/bookings/instant:
+ *   post:
+ *     summary: Create an immediate booking
+ *     description: This will automatically set the scheduled date and time to NOW and trigger an instant search for nearby vendors upon payment.
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - serviceId
+ *               - address
+ *               - lat
+ *               - lng
+ *             properties:
+ *               serviceId:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               lat:
+ *                 type: number
+ *               lng:
+ *                 type: number
+ *               customerNotes:
+ *                 type: string
+ *               addons:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                     price:
+ *                       type: number
+ *     responses:
+ *       201:
+ *         description: Instant Booking initialized in PENDING_PAYMENT state
+ *       400:
+ *         description: Missing required fields
+ */
+router.post("/instant", bookingController_1.instantBooking);
+/**
+ * @swagger
+ * /api/bookings/estimate-price:
+ *   get:
+ *     summary: Estimate booking price
+ *     description: Returns a breakdown of the estimated cost for a given service and its addons
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: serviceId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The UUID of the service
+ *       - in: query
+ *         name: addons
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: JSON stringified array of addons e.g. [{"name":"Extra tools","price":50}]
+ *     responses:
+ *       200:
+ *         description: Price estimated successfully
+ *       400:
+ *         description: Missing serviceId
+ */
+router.get("/estimate-price", bookingController_1.estimatePrice);
+// --- RETRIEVAL ---
+/**
+ * @swagger
+ * /api/bookings/upcoming:
+ *   get:
+ *     summary: Get upcoming active bookings for the user
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of upcoming bookings
+ */
+router.get("/upcoming", bookingController_1.getUpcomingBookings);
+/**
+ * @swagger
+ * /api/bookings/history:
+ *   get:
+ *     summary: Get historical (completed/cancelled) bookings for the user
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of historical bookings
+ */
+router.get("/history", bookingController_1.getBookingHistory);
+// Note: More specific paths must be defined BEFORE the generic /:id catchall
+/**
+ * @swagger
+ * /api/bookings/status:
+ *   get:
+ *     summary: Get the real-time status of a booking
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: bookingId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Current status
+ */
+router.get("/status", bookingController_1.getBookingStatus);
+/**
+ * @swagger
+ * /api/bookings/timeline:
+ *   get:
+ *     summary: Get the chronological events of a booking's progress
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: bookingId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Array of timeline events
+ */
+router.get("/timeline", bookingController_1.getBookingTimeline);
+/**
+ * @swagger
+ * /api/bookings/customer-notes:
+ *   get:
+ *     summary: Fetch customer notes for a booking
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: bookingId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Customer notes text
+ */
+router.get("/customer-notes", bookingController_1.getCustomerNotes);
+/**
+ * @swagger
+ * /api/bookings/vendor-location:
+ *   get:
+ *     summary: Get the live location coordinates of the assigned vendor
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: vendorId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: vendorId, lat, lng, and timestamp
+ */
+router.get("/vendor-location", bookingController_1.getVendorLocation);
+/**
+ * @swagger
+ * /api/bookings/invoice:
+ *   get:
+ *     summary: Generate a detailed invoice for a completed booking
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: bookingId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Generated invoice object
+ */
+router.get("/invoice", bookingController_1.getInvoice);
+/**
+ * @swagger
+ * /api/bookings/{id}:
+ *   get:
+ *     summary: Get full booking details including service, addons, and timeline
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The booking ID
+ *     responses:
+ *       200:
+ *         description: Full booking details
+ *       404:
+ *         description: Booking not found
+ */
+router.get("/:id", bookingController_1.getBookingById); // Full Details
+// --- LIFECYCLE & ACTIONS ---
+/**
+ * @swagger
+ * /api/bookings/confirm:
+ *   post:
+ *     summary: Confirm a booking (called after successful payment)
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - bookingId
+ *             properties:
+ *               bookingId:
+ *                 type: string
+ *               transactionId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Booking confirmed
+ *       400:
+ *         description: Booking is not in PENDING_PAYMENT state
+ */
+router.post("/confirm", bookingController_1.confirmBooking);
+/**
+ * @swagger
+ * /api/bookings/cancel:
+ *   post:
+ *     summary: Cancel an active booking
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - bookingId
+ *             properties:
+ *               bookingId:
+ *                 type: string
+ *               reason:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Booking cancelled
+ *       400:
+ *         description: Booking cannot be cancelled in current state
+ */
+router.post("/cancel", bookingController_1.cancelBooking);
+/**
+ * @swagger
+ * /api/bookings/reschedule:
+ *   post:
+ *     summary: Reschedule an active booking
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - bookingId
+ *               - newDate
+ *               - newTime
+ *             properties:
+ *               bookingId:
+ *                 type: string
+ *               newDate:
+ *                 type: string
+ *                 format: date
+ *               newTime:
+ *                 type: string
+ *                 example: "16:00:00"
+ *     responses:
+ *       200:
+ *         description: Booking rescheduled
+ *       400:
+ *         description: Cannot reschedule booking in its current state
+ */
+router.post("/reschedule", bookingController_1.rescheduleBooking);
+/**
+ * @swagger
+ * /api/bookings/reassign-vendor:
+ *   post:
+ *     summary: Clear the current vendor and look for a new one
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - bookingId
+ *             properties:
+ *               bookingId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Vendor reassigned
+ */
+router.post("/reassign-vendor", bookingController_1.reassignVendor);
+/**
+ * @swagger
+ * /api/bookings/rebook:
+ *   post:
+ *     summary: Quickly create a new booking using previous booking details
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - previousBookingId
+ *               - scheduledDate
+ *               - scheduledTime
+ *             properties:
+ *               previousBookingId:
+ *                 type: string
+ *               scheduledDate:
+ *                 type: string
+ *                 format: date
+ *               scheduledTime:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: New booking initialized
+ */
+router.post("/rebook", bookingController_1.rebook);
+// --- EXECUTION & REAL-TIME ---
+/**
+ * @swagger
+ * /api/bookings/assign-vendor:
+ *   post:
+ *     summary: Assign a specific vendor to a CONFIRMED booking
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - bookingId
+ *               - vendorId
+ *             properties:
+ *               bookingId:
+ *                 type: string
+ *               vendorId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Vendor assigned
+ *       400:
+ *         description: Booking is not CONFIRMED
+ */
+router.post("/assign-vendor", bookingController_1.assignVendor);
+/**
+ * @swagger
+ * /api/bookings/en-route:
+ *   post:
+ *     summary: Mark the vendor as EN ROUTE to the customer
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - bookingId
+ *             properties:
+ *               bookingId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Marked as en route
+ */
+router.post("/en-route", bookingController_1.markEnRoute);
+/**
+ * @swagger
+ * /api/bookings/arrived:
+ *   post:
+ *     summary: Mark the vendor as ARRIVED at the customer location
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - bookingId
+ *             properties:
+ *               bookingId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Marked as arrived
+ */
+router.post("/arrived", bookingController_1.markArrived);
+/**
+ * @swagger
+ * /api/bookings/start:
+ *   post:
+ *     summary: Mark a service as IN_PROGRESS (Vendor action)
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - bookingId
+ *             properties:
+ *               bookingId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Service started
+ */
+router.post("/start", bookingController_1.startService);
+/**
+ * @swagger
+ * /api/bookings/end:
+ *   post:
+ *     summary: Mark a service as SERVICE_ENDED (Vendor action)
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - bookingId
+ *             properties:
+ *               bookingId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Service ended
+ */
+router.post("/end", bookingController_1.endService);
+/**
+ * @swagger
+ * /api/bookings/complete:
+ *   post:
+ *     summary: Mark a booking as COMPLETED and finalize payments (System/Admin/Auto action)
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - bookingId
+ *             properties:
+ *               bookingId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Booking finalized
+ */
+router.post("/complete", bookingController_1.completeBooking);
+// --- FINANCIALS: ADDONS, TIPS ---
+/**
+ * @swagger
+ * /api/bookings/add-addon:
+ *   post:
+ *     summary: Add an addon to the booking
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - bookingId
+ *               - addonName
+ *               - price
+ *             properties:
+ *               bookingId:
+ *                 type: string
+ *               addonName:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Addon added
+ */
+router.post("/add-addon", bookingController_1.addAddon);
+/**
+ * @swagger
+ * /api/bookings/remove-addon:
+ *   post:
+ *     summary: Remove an addon from the booking
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - bookingId
+ *               - addonId
+ *             properties:
+ *               bookingId:
+ *                 type: string
+ *               addonId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Addon removed
+ */
+router.post("/remove-addon", bookingController_1.removeAddon);
+/**
+ * @swagger
+ * /api/bookings/tip:
+ *   post:
+ *     summary: Allow users to tip vendors and credit their wallet
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - bookingId
+ *               - tipAmount
+ *             properties:
+ *               bookingId:
+ *                 type: string
+ *               tipAmount:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Tip added to booking
+ */
+router.post("/tip", bookingController_1.tipVendor);
+exports.default = router;

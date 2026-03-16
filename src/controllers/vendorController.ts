@@ -11,6 +11,13 @@ const vendorRepo = AppDataSource.getRepository(Vendor);
 const categoryRepo = AppDataSource.getRepository(ServiceCategory);
 
 const JWT_SECRET = process.env.JWT_SECRET || "super_secret_jwt_key_here";
+const REFRESH_SECRET = process.env.REFRESH_SECRET || "super_secret_refresh_key_here";
+
+const generateTokens = (id: string, role: string) => {
+    const accessToken = jwt.sign({ id, role }, JWT_SECRET, { expiresIn: "1h" });
+    const refreshToken = jwt.sign({ id, role }, REFRESH_SECRET, { expiresIn: "30d" });
+    return { accessToken, refreshToken };
+};
 
 export const registerVendor = async (req: Request, res: Response) => {
     try {
@@ -86,11 +93,45 @@ export const loginVendor = async (req: Request, res: Response) => {
             return res.status(403).json({ message: `Access denied. Vendor status: ${vendor.status}` });
         }
 
-        const token = jwt.sign({ id: vendor.id, role: "VENDOR" }, JWT_SECRET, { expiresIn: "7d" });
+        const { accessToken, refreshToken } = generateTokens(vendor.id, "VENDOR");
 
-        res.status(200).json({ message: "Login successful", token, vendor });
+        vendor.refreshToken = refreshToken;
+        await vendorRepo.save(vendor);
+
+        res.status(200).json({ message: "Login successful", accessToken, refreshToken, vendor });
     } catch (error) {
         res.status(500).json({ message: "Login failed", error });
+    }
+};
+
+export const refreshVendorToken = async (req: Request, res: Response) => {
+    try {
+        const { refreshToken: token } = req.body;
+        if (!token) return res.status(400).json({ message: "Refresh token is required" });
+
+        let decoded: any;
+        try {
+            decoded = jwt.verify(token, REFRESH_SECRET);
+        } catch {
+            return res.status(401).json({ message: "Invalid or expired refresh token" });
+        }
+
+        const vendor = await vendorRepo.findOneBy({ id: decoded.id });
+        if (!vendor || vendor.refreshToken !== token) {
+            return res.status(401).json({ message: "Refresh token mismatch or vendor not found" });
+        }
+
+        const { accessToken, refreshToken: newRefreshToken } = generateTokens(vendor.id, "VENDOR");
+        vendor.refreshToken = newRefreshToken;
+        await vendorRepo.save(vendor);
+
+        return res.status(200).json({
+            message: "Tokens refreshed successfully",
+            accessToken,
+            refreshToken: newRefreshToken
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error refreshing token", error });
     }
 };
 

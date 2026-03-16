@@ -1,27 +1,17 @@
-import { Router } from "express";
-import { registerVendor, verifyVendorOtp, loginVendor, refreshVendorToken, getVendorProfile, updateVendorProfile, uploadVendorDocument } from "../controllers/vendorController";
-import { authenticateJWT, authorizeRole } from "../middlewares/authMiddleware";
-import { validateRequest } from "../middlewares/validationMiddleware";
-import {
-    registerVendorSchema,
-    loginVendorSchema,
-    updateVendorProfileSchema,
-    purchaseSubscriptionSchema,
-    jobStatusSchema,
-    payoutRequestSchema,
-    uploadDocumentSchema,
-    verifyOtpSchema
-} from "../validations/vendorValidations";
-
-const router = Router();
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const vendorController_1 = require("../controllers/vendorController");
+const authMiddleware_1 = require("../middlewares/authMiddleware");
+const validationMiddleware_1 = require("../middlewares/validationMiddleware");
+const vendorValidations_1 = require("../validations/vendorValidations");
+const router = (0, express_1.Router)();
 /**
  * @swagger
  * tags:
  *   name: Vendors
  *   description: Vendor onboarding, operations, and earnings
  */
-
 /**
  * @swagger
  * /api/vendors/register:
@@ -64,8 +54,7 @@ const router = Router();
  *       201:
  *         description: Vendor registered successfully
  */
-router.post("/register", validateRequest(registerVendorSchema), registerVendor);
-
+router.post("/register", (0, validationMiddleware_1.validateRequest)(vendorValidations_1.registerVendorSchema), vendorController_1.registerVendor);
 /**
  * @swagger
  * /api/vendors/verify-otp:
@@ -89,8 +78,7 @@ router.post("/register", validateRequest(registerVendorSchema), registerVendor);
  *       400:
  *         description: Invalid or expired OTP
  */
-router.post("/verify-otp", validateRequest(verifyOtpSchema), verifyVendorOtp);
-
+router.post("/verify-otp", (0, validationMiddleware_1.validateRequest)(vendorValidations_1.verifyOtpSchema), vendorController_1.verifyVendorOtp);
 /**
  * @swagger
  * /api/vendors/login:
@@ -110,39 +98,11 @@ router.post("/verify-otp", validateRequest(verifyOtpSchema), verifyVendorOtp);
  *                 type: string
  *     responses:
  *       200:
- *         description: Login successful — returns accessToken (1h) and refreshToken (30d)
+ *         description: Login successful
  */
-router.post("/login", validateRequest(loginVendorSchema), loginVendor);
-
-/**
- * @swagger
- * /api/vendors/refresh-token:
- *   post:
- *     summary: Refresh vendor access token
- *     description: Exchange a valid refresh token for a new access token + refresh token pair.
- *     tags: [Vendors]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - refreshToken
- *             properties:
- *               refreshToken:
- *                 type: string
- *     responses:
- *       200:
- *         description: New accessToken and refreshToken issued
- *       401:
- *         description: Invalid or expired refresh token
- */
-router.post("/refresh-token", refreshVendorToken);
-
-import { getCurrentSubscription, purchaseSubscription } from "../controllers/vendorSubscriptionController";
-import { getPendingJobs, acceptJob, rejectJob, updateJobStatus } from "../controllers/vendorJobController";
-
+router.post("/login", (0, validationMiddleware_1.validateRequest)(vendorValidations_1.loginVendorSchema), vendorController_1.loginVendor);
+const vendorSubscriptionController_1 = require("../controllers/vendorSubscriptionController");
+const vendorJobController_1 = require("../controllers/vendorJobController");
 /**
  * @swagger
  * /api/vendors/profile:
@@ -155,8 +115,7 @@ import { getPendingJobs, acceptJob, rejectJob, updateJobStatus } from "../contro
  *       200:
  *         description: Profile data
  */
-router.get("/profile", authenticateJWT, authorizeRole("VENDOR"), getVendorProfile);
-
+router.get("/profile", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("VENDOR"), vendorController_1.getVendorProfile);
 /**
  * @swagger
  * /api/vendors/profile:
@@ -182,8 +141,7 @@ router.get("/profile", authenticateJWT, authorizeRole("VENDOR"), getVendorProfil
  *       200:
  *         description: Profile updated
  */
-router.put("/profile", authenticateJWT, authorizeRole("VENDOR"), validateRequest(updateVendorProfileSchema), updateVendorProfile);
-
+router.put("/profile", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("VENDOR"), (0, validationMiddleware_1.validateRequest)(vendorValidations_1.updateVendorProfileSchema), vendorController_1.updateVendorProfile);
 /**
  * @swagger
  * /api/vendors/document:
@@ -205,8 +163,7 @@ router.put("/profile", authenticateJWT, authorizeRole("VENDOR"), validateRequest
  *       200:
  *         description: Document uploaded successfully
  */
-router.post("/document", authenticateJWT, authorizeRole("VENDOR"), validateRequest(uploadDocumentSchema), uploadVendorDocument);
-
+router.post("/document", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("VENDOR"), (0, validationMiddleware_1.validateRequest)(vendorValidations_1.uploadDocumentSchema), vendorController_1.uploadVendorDocument);
 /**
  * @swagger
  * /api/vendors/subscription:
@@ -219,8 +176,7 @@ router.post("/document", authenticateJWT, authorizeRole("VENDOR"), validateReque
  *       200:
  *         description: Active subscription
  */
-router.get("/subscription", authenticateJWT, authorizeRole("VENDOR"), getCurrentSubscription);
-
+router.get("/subscription", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("VENDOR"), vendorSubscriptionController_1.getCurrentSubscription);
 /**
  * @swagger
  * /api/vendors/subscription/purchase:
@@ -242,8 +198,7 @@ router.get("/subscription", authenticateJWT, authorizeRole("VENDOR"), getCurrent
  *       200:
  *         description: Subscription activated
  */
-router.post("/subscription/purchase", authenticateJWT, authorizeRole("VENDOR"), validateRequest(purchaseSubscriptionSchema), purchaseSubscription);
-
+router.post("/subscription/purchase", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("VENDOR"), (0, validationMiddleware_1.validateRequest)(vendorValidations_1.purchaseSubscriptionSchema), vendorSubscriptionController_1.purchaseSubscription);
 /**
  * @swagger
  * /api/vendors/jobs/pending:
@@ -256,8 +211,7 @@ router.post("/subscription/purchase", authenticateJWT, authorizeRole("VENDOR"), 
  *       200:
  *         description: List of pending bookings
  */
-router.get("/jobs/pending", authenticateJWT, authorizeRole("VENDOR"), getPendingJobs);
-
+router.get("/jobs/pending", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("VENDOR"), vendorJobController_1.getPendingJobs);
 /**
  * @swagger
  * /api/vendors/jobs/{bookingId}/accept:
@@ -276,8 +230,7 @@ router.get("/jobs/pending", authenticateJWT, authorizeRole("VENDOR"), getPending
  *       200:
  *         description: Job accepted
  */
-router.post("/jobs/:bookingId/accept", authenticateJWT, authorizeRole("VENDOR"), acceptJob);
-
+router.post("/jobs/:bookingId/accept", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("VENDOR"), vendorJobController_1.acceptJob);
 /**
  * @swagger
  * /api/vendors/jobs/{bookingId}/reject:
@@ -296,8 +249,7 @@ router.post("/jobs/:bookingId/accept", authenticateJWT, authorizeRole("VENDOR"),
  *       200:
  *         description: Job rejected
  */
-router.post("/jobs/:bookingId/reject", authenticateJWT, authorizeRole("VENDOR"), rejectJob);
-
+router.post("/jobs/:bookingId/reject", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("VENDOR"), vendorJobController_1.rejectJob);
 /**
  * @swagger
  * /api/vendors/jobs/{bookingId}/status:
@@ -326,10 +278,8 @@ router.post("/jobs/:bookingId/reject", authenticateJWT, authorizeRole("VENDOR"),
  *       200:
  *         description: Status updated
  */
-router.put("/jobs/:bookingId/status", authenticateJWT, authorizeRole("VENDOR"), validateRequest(jobStatusSchema), updateJobStatus);
-
-import { getEarningsDashboard, requestPayout } from "../controllers/vendorEarningsController";
-
+router.put("/jobs/:bookingId/status", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("VENDOR"), (0, validationMiddleware_1.validateRequest)(vendorValidations_1.jobStatusSchema), vendorJobController_1.updateJobStatus);
+const vendorEarningsController_1 = require("../controllers/vendorEarningsController");
 /**
  * @swagger
  * /api/vendors/earnings:
@@ -342,8 +292,7 @@ import { getEarningsDashboard, requestPayout } from "../controllers/vendorEarnin
  *       200:
  *         description: Earnings data
  */
-router.get("/earnings", authenticateJWT, authorizeRole("VENDOR"), getEarningsDashboard);
-
+router.get("/earnings", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("VENDOR"), vendorEarningsController_1.getEarningsDashboard);
 /**
  * @swagger
  * /api/vendors/earnings/payout:
@@ -365,6 +314,5 @@ router.get("/earnings", authenticateJWT, authorizeRole("VENDOR"), getEarningsDas
  *       200:
  *         description: Payout requested
  */
-router.post("/earnings/payout", authenticateJWT, authorizeRole("VENDOR"), validateRequest(payoutRequestSchema), requestPayout);
-
-export default router;
+router.post("/earnings/payout", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("VENDOR"), (0, validationMiddleware_1.validateRequest)(vendorValidations_1.payoutRequestSchema), vendorEarningsController_1.requestPayout);
+exports.default = router;
