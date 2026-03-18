@@ -128,24 +128,6 @@ router.post("/", createService);
 
 /**
  * @swagger
- * /api/services/{id}:
- *   get:
- *     summary: Get a specific service by its custom ID
- *     tags: [Services]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Service details
- */
-router.get("/:id", getServiceById);
-
-/**
- * @swagger
  * /api/services/search:
  *   get:
  *     summary: Search for services globally
@@ -161,6 +143,24 @@ router.get("/:id", getServiceById);
  *         description: Search results
  */
 router.get("/search", validateRequest(searchServicesSchema, "query"), searchServices);
+
+/**
+ * @swagger
+ * /api/services/{id}:
+ *   get:
+ *     summary: Get a specific service by its custom ID
+ *     tags: [Services]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Service details
+ */
+router.get("/:id", getServiceById);
 
 // --- ADDONS ---
 

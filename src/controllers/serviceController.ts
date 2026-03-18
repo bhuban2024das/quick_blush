@@ -123,13 +123,13 @@ export const getServicesByCategory = async (req: Request, res: Response) => {
 
 export const searchServices = async (req: Request, res: Response) => {
     try {
-        const { q } = req.query;
-        if (!q || typeof q !== "string") {
-            return res.status(400).json({ message: "Search query 'q' is required" });
+        const query = req.query.query as string;
+        if (!query) {
+            return res.status(400).json({ message: "Search query 'query' is required" });
         }
 
         const services = await serviceRepo.find({
-            where: { name: ILike(`%${q}%`), isActive: true }
+            where: { name: ILike(`%${query}%`), isActive: true }
         });
         res.status(200).json(services);
     } catch (error) {
