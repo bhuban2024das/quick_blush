@@ -4,6 +4,7 @@ import { Booking, BookingStatus, PaymentStatus } from "../entities/Booking";
 import { BookingAddon } from "../entities/BookingAddon";
 import { BookingTimeline } from "../entities/BookingTimeline";
 import { Service } from "../entities/Service";
+import { Vendor, VendorStatus } from "../entities/Vendor";
 
 const bookingRepository = AppDataSource.getRepository(Booking);
 const serviceRepository = AppDataSource.getRepository(Service);
@@ -334,8 +335,15 @@ export const confirmBooking = async (req: Request, res: Response) => {
         timeline.description = `Payment verified (Txn: ${transactionId || "N/A"}). Booking confirmed and searching for vendors.`;
         await AppDataSource.getRepository(BookingTimeline).save(timeline);
 
+        // --- Run Matchmaking Algorithm ---
+        const io = req.app.get("io");
+        if (io) {
+            matchAndPingVendors(booking.id, io).catch(e => console.error("Matchmaking error:", e));
+        }
+
         res.status(200).json({ message: "Booking confirmed successfully", booking });
     } catch (error) {
+
         console.error("Error confirming booking:", error);
         res.status(500).json({ message: "Error confirming booking", error });
     }
@@ -817,3 +825,72 @@ export const getInvoice = async (req: Request, res: Response) => {
         res.status(500).json({ message: "Error generating invoice", error });
     }
 };
+
+// --- MATCHMAKING ENGINE ---
+
+async function matchAndPingVendors(bookingId: string, io: any) {
+    try {
+        const booking = await bookingRepository.findOne({ 
+            where: { id: bookingId }, 
+            relations: ["service"] 
+        });
+
+        if (!booking || !booking.lat || !booking.lng) return;
+
+        console.log(`[Matchmaking] Finding vendors for Booking ${booking.id}...`);
+
+        const vendorRepo = AppDataSource.getRepository(Vendor);
+
+        // 1. Proximity: Within 10km radius
+        // 2. Status: APPROVED
+        // 3. Online: isOnline = true
+        // 4. Qualified: Has requested serviceId
+        // 5. Availability: Not currently busy
+
+        const nearbyVendors = await vendorRepo.createQueryBuilder("vendor")
+            .leftJoin("vendor.services", "service")
+            .where("vendor.status = :status", { status: VendorStatus.APPROVED })
+            .andWhere("vendor.isOnline = :isOnline", { isOnline: true })
+            .andWhere("service.id = :serviceId", { serviceId: booking.service.id })
+            .andWhere(`ST_DistanceSphere(vendor.location, ST_SetSRID(ST_Point(:lng, :lat), 4326)) <= :radius`, { 
+                lng: booking.lng, 
+                lat: booking.lat, 
+                radius: 10000 // 10 km 
+            })
+            // Subquery to ensure they are NOT currently busy with an active job
+            .andWhere((qb) => {
+                const subQuery = qb.subQuery()
+                    .select("b.vendorId")
+                    .from(Booking, "b")
+                    .where("b.vendorId IS NOT NULL")
+                    .andWhere("b.status IN (:...busyStatuses)")
+                    .getQuery();
+                return "vendor.id NOT IN " + subQuery;
+            })
+            .setParameter("busyStatuses", [
+                BookingStatus.VENDOR_ASSIGNED, 
+                BookingStatus.VENDOR_ENROUTE, 
+                BookingStatus.ARRIVED, 
+                BookingStatus.IN_PROGRESS
+            ])
+            .getMany();
+
+        if (nearbyVendors.length > 0) {
+            console.log(`[Matchmaking] Success! Found ${nearbyVendors.length} eligible vendors within 10km.`);
+            
+            // Broadcast the ping to Vendor Apps
+            io.emit("vendor:new_job_alert", {
+                bookingId: booking.id,
+                serviceName: booking.service.name,
+                lat: booking.lat,
+                lng: booking.lng,
+                address: booking.address,
+                assignedVendors: nearbyVendors.map(v => v.id) // App filters if their ID is in this array
+            });
+        } else {
+            console.log(`[Matchmaking] Failed. No online, approved, and available vendors found within 10km for service ${booking.service.name}.`);
+        }
+    } catch (error) {
+        console.error("[Matchmaking] Critical Error:", error);
+    }
+}
