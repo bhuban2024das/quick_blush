@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerVendor, verifyVendorOtp, loginVendor, refreshVendorToken, getVendorProfile, updateVendorProfile, uploadVendorDocument } from "../controllers/vendorController";
+import { registerVendor, verifyVendorOtp, loginVendor, refreshVendorToken, getVendorProfile, updateVendorProfile, uploadVendorDocument, updateVendorLocation } from "../controllers/vendorController";
 import { authenticateJWT, authorizeRole } from "../middlewares/authMiddleware";
 import { validateRequest } from "../middlewares/validationMiddleware";
 import {
@@ -10,7 +10,8 @@ import {
     jobStatusSchema,
     payoutRequestSchema,
     uploadDocumentSchema,
-    verifyOtpSchema
+    verifyOtpSchema,
+    updateVendorLocationSchema
 } from "../validations/vendorValidations";
 
 const router = Router();
@@ -366,5 +367,33 @@ router.get("/earnings", authenticateJWT, authorizeRole("VENDOR"), getEarningsDas
  *         description: Payout requested
  */
 router.post("/earnings/payout", authenticateJWT, authorizeRole("VENDOR"), validateRequest(payoutRequestSchema), requestPayout);
+
+/**
+ * @swagger
+ * /api/vendors/location:
+ *   put:
+ *     summary: Update vendor live GPS location
+ *     tags: [Vendors]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - lat
+ *               - lng
+ *             properties:
+ *               lat:
+ *                 type: number
+ *               lng:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Location updated successfully
+ */
+router.put("/location", authenticateJWT, authorizeRole("VENDOR"), validateRequest(updateVendorLocationSchema), updateVendorLocation);
 
 export default router;

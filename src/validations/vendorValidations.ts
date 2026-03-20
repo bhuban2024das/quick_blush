@@ -46,3 +46,8 @@ export const jobStatusSchema = Joi.object({
 export const payoutRequestSchema = Joi.object({
     amount: Joi.number().positive().required()
 });
+
+export const updateVendorLocationSchema = Joi.object({
+    lat: Joi.number().required(),
+    lng: Joi.number().required()
+});

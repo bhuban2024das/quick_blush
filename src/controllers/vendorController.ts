@@ -181,3 +181,21 @@ export const uploadVendorDocument = async (req: any, res: Response) => {
         res.status(500).json({ message: "Error uploading document", error });
     }
 };
+
+export const updateVendorLocation = async (req: any, res: Response) => {
+    try {
+        const vendorId = req.user.id;
+        const { lat, lng } = req.body;
+
+        await vendorRepo.createQueryBuilder()
+            .update(Vendor)
+            .set({ location: () => `ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)` })
+            .where("id = :id", { id: vendorId })
+            .execute();
+
+        res.status(200).json({ message: "Location updated successfully" });
+    } catch (error) {
+        console.error("Error updating location:", error);
+        res.status(500).json({ message: "Error updating location", error });
+    }
+};
