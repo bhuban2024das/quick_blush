@@ -48,6 +48,7 @@ let Vendor = class Vendor {
     location;
     documentUrl;
     isVerified;
+    refreshToken;
     createdAt;
     updatedAt;
 };
@@ -142,6 +143,10 @@ __decorate([
     (0, typeorm_1.Column)({ type: "boolean", default: false }),
     __metadata("design:type", Boolean)
 ], Vendor.prototype, "isVerified", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "text", nullable: true }),
+    __metadata("design:type", String)
+], Vendor.prototype, "refreshToken", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)

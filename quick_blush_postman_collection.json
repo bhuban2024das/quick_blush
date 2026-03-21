@@ -238,7 +238,7 @@
           "response": []
         },
         {
-          "name": "Verify OTP and log in/register the user",
+          "name": "Resend OTP to mobile",
           "request": {
             "method": "POST",
             "header": [
@@ -248,20 +248,20 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/auth/verify-otp",
+              "raw": "{{baseUrl}}/api/auth/resend-otp",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "auth",
-                "verify-otp"
+                "resend-otp"
               ],
               "variable": []
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"mobile\": \"string\",\n  \"otp\": \"string\"\n}",
+              "raw": "{\n  \"mobile\": \"string\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -272,7 +272,7 @@
           "response": []
         },
         {
-          "name": "Complete registration after verifying OTP",
+          "name": "Complete profile after OTP verification",
           "request": {
             "method": "POST",
             "header": [
@@ -295,7 +295,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"string\",\n  \"email\": \"string\",\n  \"password\": \"string\",\n  \"gender\": \"string\",\n  \"photo\": \"string\"\n}",
+              "raw": "{\n  \"name\": \"string\",\n  \"email\": \"string\",\n  \"gender\": \"string\",\n  \"photo\": \"string\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -316,9 +316,9 @@
           "response": []
         },
         {
-          "name": "Login with email and password",
+          "name": "Check if a stored JWT token is still valid",
           "request": {
-            "method": "POST",
+            "method": "GET",
             "header": [
               {
                 "key": "Content-Type",
@@ -326,31 +326,32 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/auth/login",
+              "raw": "{{baseUrl}}/api/auth/validate-token",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "auth",
-                "login"
+                "validate-token"
               ],
               "variable": []
             },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"emailOrMobile\": \"string\",\n  \"password\": \"string\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}",
+                  "type": "string"
                 }
-              }
+              ]
             }
           },
           "response": []
         },
         {
-          "name": "Logout user",
+          "name": "Logout — invalidate session client-side",
           "request": {
             "method": "POST",
             "header": [
@@ -385,7 +386,7 @@
           "response": []
         },
         {
-          "name": "Refresh JWT token",
+          "name": "Refresh user access token",
           "request": {
             "method": "POST",
             "header": [
@@ -405,12 +406,21 @@
                 "refresh-token"
               ],
               "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
         },
         {
-          "name": "Login via Social provider (Google/Facebook)",
+          "name": "Login via Social provider (Google / Apple)",
           "request": {
             "method": "POST",
             "header": [
@@ -435,119 +445,7 @@
           "response": []
         },
         {
-          "name": "Change user password",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/auth/change-password",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "change-password"
-              ],
-              "variable": []
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"currentPassword\": \"string\",\n  \"newPassword\": \"string\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{bearerToken}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Request password reset link / OTP",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/auth/forgot-password",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "forgot-password"
-              ],
-              "variable": []
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"string\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Reset password using OTP",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/auth/reset-password",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "reset-password"
-              ],
-              "variable": []
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"string\",\n  \"otp\": \"string\",\n  \"newPassword\": \"string\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Verify email address",
+          "name": "Verify email address via OTP",
           "request": {
             "method": "POST",
             "header": [
@@ -586,40 +484,6 @@
                   "type": "string"
                 }
               ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Resend OTP to mobile",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/auth/resend-otp",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "resend-otp"
-              ],
-              "variable": []
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"mobile\": \"string\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
             }
           },
           "response": []
@@ -2582,6 +2446,40 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"string\",\n  \"password\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh vendor access token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/vendors/refresh-token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "vendors",
+                "refresh-token"
+              ],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"string\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

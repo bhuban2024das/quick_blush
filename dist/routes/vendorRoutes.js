@@ -98,9 +98,34 @@ router.post("/verify-otp", (0, validationMiddleware_1.validateRequest)(vendorVal
  *                 type: string
  *     responses:
  *       200:
- *         description: Login successful
+ *         description: Login successful — returns accessToken (1h) and refreshToken (30d)
  */
 router.post("/login", (0, validationMiddleware_1.validateRequest)(vendorValidations_1.loginVendorSchema), vendorController_1.loginVendor);
+/**
+ * @swagger
+ * /api/vendors/refresh-token:
+ *   post:
+ *     summary: Refresh vendor access token
+ *     description: Exchange a valid refresh token for a new access token + refresh token pair.
+ *     tags: [Vendors]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - refreshToken
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: New accessToken and refreshToken issued
+ *       401:
+ *         description: Invalid or expired refresh token
+ */
+router.post("/refresh-token", vendorController_1.refreshVendorToken);
 const vendorSubscriptionController_1 = require("../controllers/vendorSubscriptionController");
 const vendorJobController_1 = require("../controllers/vendorJobController");
 /**
@@ -315,4 +340,31 @@ router.get("/earnings", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.a
  *         description: Payout requested
  */
 router.post("/earnings/payout", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("VENDOR"), (0, validationMiddleware_1.validateRequest)(vendorValidations_1.payoutRequestSchema), vendorEarningsController_1.requestPayout);
+/**
+ * @swagger
+ * /api/vendors/location:
+ *   put:
+ *     summary: Update vendor live GPS location
+ *     tags: [Vendors]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - lat
+ *               - lng
+ *             properties:
+ *               lat:
+ *                 type: number
+ *               lng:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Location updated successfully
+ */
+router.put("/location", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("VENDOR"), (0, validationMiddleware_1.validateRequest)(vendorValidations_1.updateVendorLocationSchema), vendorController_1.updateVendorLocation);
 exports.default = router;

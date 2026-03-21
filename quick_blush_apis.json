@@ -148,8 +148,7 @@
               "properties": {
                 "mobile": {
                   "type": "string",
-                  "example": "1234567890",
-                  "description": "Mobile number of the user"
+                  "example": "9999999999"
                 }
               }
             }
@@ -162,348 +161,6 @@
         },
         "400": {
           "description": "Mobile number required"
-        }
-      }
-    }
-  },
-  "/api/auth/verify-otp": {
-    "post": {
-      "summary": "Verify OTP and log in/register the user",
-      "tags": [
-        "Auth"
-      ],
-      "requestBody": {
-        "required": true,
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "required": [
-                "mobile",
-                "otp"
-              ],
-              "properties": {
-                "mobile": {
-                  "type": "string",
-                  "example": "1234567890"
-                },
-                "otp": {
-                  "type": "string",
-                  "example": "123456"
-                }
-              }
-            }
-          }
-        }
-      },
-      "responses": {
-        "200": {
-          "description": "Login successful, returns JWT token and user profile"
-        },
-        "400": {
-          "description": "Invalid OTP"
-        }
-      }
-    }
-  },
-  "/api/auth/register-details": {
-    "post": {
-      "summary": "Complete registration after verifying OTP",
-      "description": "This endpoint requires a Bearer token received from /verify-otp.",
-      "tags": [
-        "Auth"
-      ],
-      "security": [
-        {
-          "bearerAuth": []
-        }
-      ],
-      "requestBody": {
-        "required": true,
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "required": [
-                "name",
-                "password"
-              ],
-              "properties": {
-                "name": {
-                  "type": "string"
-                },
-                "email": {
-                  "type": "string"
-                },
-                "password": {
-                  "type": "string"
-                },
-                "gender": {
-                  "type": "string",
-                  "enum": [
-                    "MALE",
-                    "FEMALE",
-                    "OTHER"
-                  ]
-                },
-                "photo": {
-                  "type": "string",
-                  "description": "URL to the user photo"
-                }
-              }
-            }
-          }
-        }
-      },
-      "responses": {
-        "200": {
-          "description": "User profile setup successfully"
-        },
-        "400": {
-          "description": "Email already in use or missing fields"
-        },
-        "401": {
-          "description": "Unauthorized, missing or invalid token"
-        }
-      }
-    }
-  },
-  "/api/auth/login": {
-    "post": {
-      "summary": "Login with email and password",
-      "tags": [
-        "Auth"
-      ],
-      "requestBody": {
-        "required": true,
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "required": [
-                "emailOrMobile",
-                "password"
-              ],
-              "properties": {
-                "emailOrMobile": {
-                  "type": "string",
-                  "description": "Enter either your registered email address or mobile number."
-                },
-                "password": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      },
-      "responses": {
-        "200": {
-          "description": "Login successful"
-        }
-      }
-    }
-  },
-  "/api/auth/logout": {
-    "post": {
-      "summary": "Logout user",
-      "tags": [
-        "Auth"
-      ],
-      "security": [
-        {
-          "bearerAuth": []
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "Logout successful"
-        }
-      }
-    }
-  },
-  "/api/auth/refresh-token": {
-    "post": {
-      "summary": "Refresh JWT token",
-      "tags": [
-        "Auth"
-      ],
-      "responses": {
-        "200": {
-          "description": "Token refreshed"
-        }
-      }
-    }
-  },
-  "/api/auth/social-login": {
-    "post": {
-      "summary": "Login via Social provider (Google/Facebook)",
-      "tags": [
-        "Auth"
-      ],
-      "responses": {
-        "200": {
-          "description": "Social login successful"
-        }
-      }
-    }
-  },
-  "/api/auth/change-password": {
-    "post": {
-      "summary": "Change user password",
-      "tags": [
-        "Auth"
-      ],
-      "security": [
-        {
-          "bearerAuth": []
-        }
-      ],
-      "requestBody": {
-        "required": true,
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "required": [
-                "newPassword"
-              ],
-              "properties": {
-                "currentPassword": {
-                  "type": "string",
-                  "description": "Required if the user already has a password set."
-                },
-                "newPassword": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      },
-      "responses": {
-        "200": {
-          "description": "Password changed successfully"
-        },
-        "400": {
-          "description": "Invalid current password / Missing fields"
-        }
-      }
-    }
-  },
-  "/api/auth/forgot-password": {
-    "post": {
-      "summary": "Request password reset link / OTP",
-      "tags": [
-        "Auth"
-      ],
-      "requestBody": {
-        "required": true,
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "required": [
-                "email"
-              ],
-              "properties": {
-                "email": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      },
-      "responses": {
-        "200": {
-          "description": "Password reset link/OTP sent"
-        }
-      }
-    }
-  },
-  "/api/auth/reset-password": {
-    "post": {
-      "summary": "Reset password using OTP",
-      "tags": [
-        "Auth"
-      ],
-      "requestBody": {
-        "required": true,
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "required": [
-                "email",
-                "otp",
-                "newPassword"
-              ],
-              "properties": {
-                "email": {
-                  "type": "string"
-                },
-                "otp": {
-                  "type": "string"
-                },
-                "newPassword": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      },
-      "responses": {
-        "200": {
-          "description": "Password reset successfully"
-        },
-        "400": {
-          "description": "Invalid OTP"
-        }
-      }
-    }
-  },
-  "/api/auth/verify-email": {
-    "post": {
-      "summary": "Verify email address",
-      "description": "Send email without OTP to request code. Send email + OTP to verify.",
-      "tags": [
-        "Auth"
-      ],
-      "security": [
-        {
-          "bearerAuth": []
-        }
-      ],
-      "requestBody": {
-        "required": true,
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "required": [
-                "email"
-              ],
-              "properties": {
-                "email": {
-                  "type": "string"
-                },
-                "otp": {
-                  "type": "string",
-                  "description": "Only required during verification step"
-                }
-              }
-            }
-          }
-        }
-      },
-      "responses": {
-        "200": {
-          "description": "OTP sent or Email verified"
-        },
-        "400": {
-          "description": "Invalid OTP or missing email"
         }
       }
     }
@@ -525,7 +182,8 @@
               ],
               "properties": {
                 "mobile": {
-                  "type": "string"
+                  "type": "string",
+                  "example": "9999999999"
                 }
               }
             }
@@ -534,7 +192,235 @@
       },
       "responses": {
         "200": {
-          "description": "OTP resent"
+          "description": "OTP resent successfully"
+        }
+      }
+    }
+  },
+  "/api/auth/register-details": {
+    "post": {
+      "summary": "Complete profile after OTP verification",
+      "description": "Call this endpoint (with Bearer token from /verify-otp) when `needsRegistration` is true.",
+      "tags": [
+        "Auth"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "name"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "example": "Jane Doe"
+                },
+                "email": {
+                  "type": "string",
+                  "example": "jane@example.com"
+                },
+                "gender": {
+                  "type": "string",
+                  "enum": [
+                    "MALE",
+                    "FEMALE",
+                    "OTHER"
+                  ]
+                },
+                "photo": {
+                  "type": "string",
+                  "description": "URL to the user's profile photo"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "User profile saved successfully"
+        },
+        "400": {
+          "description": "Name is required or email already in use"
+        },
+        "401": {
+          "description": "Missing or invalid token"
+        }
+      }
+    }
+  },
+  "/api/auth/validate-token": {
+    "get": {
+      "summary": "Check if a stored JWT token is still valid",
+      "description": "Always returns HTTP 200. Check the `valid` field in the response body. If `valid` is true, the full user profile is returned. If `valid` is false, a descriptive `message` explains why.\n",
+      "tags": [
+        "Auth"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Token validation result",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "valid": {
+                    "type": "boolean"
+                  },
+                  "message": {
+                    "type": "string",
+                    "description": "Present only when valid is false"
+                  },
+                  "user": {
+                    "type": "object",
+                    "description": "Present only when valid is true"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "/api/auth/logout": {
+    "post": {
+      "summary": "Logout — invalidate session client-side",
+      "tags": [
+        "Auth"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Logout successful"
+        }
+      }
+    }
+  },
+  "/api/auth/refresh-token": {
+    "post": {
+      "summary": "Refresh user access token",
+      "description": "Exchange a valid refresh token for a new access token + refresh token pair (token rotation).",
+      "tags": [
+        "Auth"
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "refreshToken"
+              ],
+              "properties": {
+                "refreshToken": {
+                  "type": "string",
+                  "description": "The refresh token received during login or OTP verification"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "New accessToken and refreshToken issued",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "accessToken": {
+                    "type": "string"
+                  },
+                  "refreshToken": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "Refresh token is required"
+        },
+        "401": {
+          "description": "Invalid, expired, or mismatched refresh token"
+        }
+      }
+    }
+  },
+  "/api/auth/social-login": {
+    "post": {
+      "summary": "Login via Social provider (Google / Apple)",
+      "tags": [
+        "Auth"
+      ],
+      "responses": {
+        "200": {
+          "description": "Social login successful"
+        }
+      }
+    }
+  },
+  "/api/auth/verify-email": {
+    "post": {
+      "summary": "Verify email address via OTP",
+      "description": "Step 1 — Send only `email` to receive an OTP. Step 2 — Send `email` + `otp` to confirm verification.\n",
+      "tags": [
+        "Auth"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "email"
+              ],
+              "properties": {
+                "email": {
+                  "type": "string"
+                },
+                "otp": {
+                  "type": "string",
+                  "description": "Only required in Step 2 (verification)"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "OTP sent or email verified successfully"
+        },
+        "400": {
+          "description": "Invalid OTP or missing email"
         }
       }
     }
@@ -2380,7 +2266,42 @@
       },
       "responses": {
         "200": {
-          "description": "Login successful"
+          "description": "Login successful — returns accessToken (1h) and refreshToken (30d)"
+        }
+      }
+    }
+  },
+  "/api/vendors/refresh-token": {
+    "post": {
+      "summary": "Refresh vendor access token",
+      "description": "Exchange a valid refresh token for a new access token + refresh token pair.",
+      "tags": [
+        "Vendors"
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "refreshToken"
+              ],
+              "properties": {
+                "refreshToken": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "New accessToken and refreshToken issued"
+        },
+        "401": {
+          "description": "Invalid or expired refresh token"
         }
       }
     }

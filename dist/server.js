@@ -59,6 +59,8 @@ async function bootstrap() {
                 methods: ["GET", "POST"]
             }
         });
+        // Make Socket.io accessible in Express controllers
+        app_1.default.set("io", io);
         io.on("connection", (socket) => {
             console.log(`Socket connected: ${socket.id}`);
             // Vendor emitting their live location

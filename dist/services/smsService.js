@@ -15,22 +15,30 @@ exports.smsService = {
     mockOtpStore: {},
     async sendOTP(to, otp) {
         try {
+            // HARDCODED OTP FOR TESTING
+            const testOtp = "123456";
             this.mockOtpStore[to] = {
-                otp,
+                otp: testOtp,
                 expiresAt: Date.now() + 10 * 60 * 1000 // 10 minutes from now
             };
-            // In a real environment without mock keys, this will hit Twilio's API
+            console.log(`[TESTING] OTP completely bypassed for ${to}. Fixed to: ${testOtp}`);
+            return true;
+            /*
+            // Original Twilio Code
             if (accountSid === "AC00000000000000000000000000000000") {
                 console.log(`[Mock SMS] Sending OTP ${otp} to ${to}`);
                 return true;
             }
+
             const message = await client.messages.create({
                 body: `Your Quick Blush OTP is: ${otp}. Valid for 10 minutes.`,
                 from: twilioPhoneNumber,
                 to: to
             });
+
             console.log(`SMS sent successfully: ${message.sid}`);
             return true;
+            */
         }
         catch (error) {
             console.error("Error sending SMS via Twilio:", error);

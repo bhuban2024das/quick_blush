@@ -15,3 +15,4 @@ export class BookingAddon {
     @Column({ type: "decimal", precision: 10, scale: 2 })
     price!: number;
 }
+

@@ -123,23 +123,6 @@ router.get("/categories/:categoryId/services", serviceController_1.getServicesBy
 router.post("/", serviceController_1.createService);
 /**
  * @swagger
- * /api/services/{id}:
- *   get:
- *     summary: Get a specific service by its custom ID
- *     tags: [Services]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Service details
- */
-router.get("/:id", serviceController_1.getServiceById);
-/**
- * @swagger
  * /api/services/search:
  *   get:
  *     summary: Search for services globally
@@ -155,6 +138,23 @@ router.get("/:id", serviceController_1.getServiceById);
  *         description: Search results
  */
 router.get("/search", (0, validationMiddleware_1.validateRequest)(serviceValidations_1.searchServicesSchema, "query"), serviceController_1.searchServices);
+/**
+ * @swagger
+ * /api/services/{id}:
+ *   get:
+ *     summary: Get a specific service by its custom ID
+ *     tags: [Services]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Service details
+ */
+router.get("/:id", serviceController_1.getServiceById);
 // --- ADDONS ---
 /**
  * @swagger

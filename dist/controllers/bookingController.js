@@ -6,6 +6,7 @@ const Booking_1 = require("../entities/Booking");
 const BookingAddon_1 = require("../entities/BookingAddon");
 const BookingTimeline_1 = require("../entities/BookingTimeline");
 const Service_1 = require("../entities/Service");
+const Vendor_1 = require("../entities/Vendor");
 const bookingRepository = data_source_1.AppDataSource.getRepository(Booking_1.Booking);
 const serviceRepository = data_source_1.AppDataSource.getRepository(Service_1.Service);
 // --- CREATION & PRICING ---
@@ -305,6 +306,11 @@ const confirmBooking = async (req, res) => {
         timeline.statusReached = Booking_1.BookingStatus.CONFIRMED;
         timeline.description = `Payment verified (Txn: ${transactionId || "N/A"}). Booking confirmed and searching for vendors.`;
         await data_source_1.AppDataSource.getRepository(BookingTimeline_1.BookingTimeline).save(timeline);
+        // --- Run Matchmaking Algorithm ---
+        const io = req.app.get("io");
+        if (io) {
+            matchAndPingVendors(booking.id, io).catch(e => console.error("Matchmaking error:", e));
+        }
         res.status(200).json({ message: "Booking confirmed successfully", booking });
     }
     catch (error) {
@@ -736,3 +742,66 @@ const getInvoice = async (req, res) => {
     }
 };
 exports.getInvoice = getInvoice;
+// --- MATCHMAKING ENGINE ---
+async function matchAndPingVendors(bookingId, io) {
+    try {
+        const booking = await bookingRepository.findOne({
+            where: { id: bookingId },
+            relations: ["service"]
+        });
+        if (!booking || !booking.lat || !booking.lng)
+            return;
+        console.log(`[Matchmaking] Finding vendors for Booking ${booking.id}...`);
+        const vendorRepo = data_source_1.AppDataSource.getRepository(Vendor_1.Vendor);
+        // 1. Proximity: Within 10km radius
+        // 2. Status: APPROVED
+        // 3. Online: isOnline = true
+        // 4. Qualified: Has requested serviceId
+        // 5. Availability: Not currently busy
+        const nearbyVendors = await vendorRepo.createQueryBuilder("vendor")
+            .leftJoin("vendor.services", "service")
+            .where("vendor.status = :status", { status: Vendor_1.VendorStatus.APPROVED })
+            .andWhere("vendor.isOnline = :isOnline", { isOnline: true })
+            .andWhere("service.id = :serviceId", { serviceId: booking.service.id })
+            .andWhere(`ST_DistanceSphere(vendor.location, ST_SetSRID(ST_Point(:lng, :lat), 4326)) <= :radius`, {
+            lng: booking.lng,
+            lat: booking.lat,
+            radius: 10000 // 10 km 
+        })
+            // Subquery to ensure they are NOT currently busy with an active job
+            .andWhere((qb) => {
+            const subQuery = qb.subQuery()
+                .select("b.vendorId")
+                .from(Booking_1.Booking, "b")
+                .where("b.vendorId IS NOT NULL")
+                .andWhere("b.status IN (:...busyStatuses)")
+                .getQuery();
+            return "vendor.id NOT IN " + subQuery;
+        })
+            .setParameter("busyStatuses", [
+            Booking_1.BookingStatus.VENDOR_ASSIGNED,
+            Booking_1.BookingStatus.VENDOR_ENROUTE,
+            Booking_1.BookingStatus.ARRIVED,
+            Booking_1.BookingStatus.IN_PROGRESS
+        ])
+            .getMany();
+        if (nearbyVendors.length > 0) {
+            console.log(`[Matchmaking] Success! Found ${nearbyVendors.length} eligible vendors within 10km.`);
+            // Broadcast the ping to Vendor Apps
+            io.emit("vendor:new_job_alert", {
+                bookingId: booking.id,
+                serviceName: booking.service.name,
+                lat: booking.lat,
+                lng: booking.lng,
+                address: booking.address,
+                assignedVendors: nearbyVendors.map(v => v.id) // App filters if their ID is in this array
+            });
+        }
+        else {
+            console.log(`[Matchmaking] Failed. No online, approved, and available vendors found within 10km for service ${booking.service.name}.`);
+        }
+    }
+    catch (error) {
+        console.error("[Matchmaking] Critical Error:", error);
+    }
+}

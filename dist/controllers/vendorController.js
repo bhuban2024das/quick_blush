@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.uploadVendorDocument = exports.updateVendorProfile = exports.getVendorProfile = exports.loginVendor = exports.verifyVendorOtp = exports.registerVendor = void 0;
+exports.updateVendorLocation = exports.uploadVendorDocument = exports.updateVendorProfile = exports.getVendorProfile = exports.refreshVendorToken = exports.loginVendor = exports.verifyVendorOtp = exports.registerVendor = void 0;
 const data_source_1 = require("../config/data-source");
 const Vendor_1 = require("../entities/Vendor");
 const ServiceCategory_1 = require("../entities/ServiceCategory");
@@ -14,6 +14,12 @@ const smsService_1 = require("../services/smsService");
 const vendorRepo = data_source_1.AppDataSource.getRepository(Vendor_1.Vendor);
 const categoryRepo = data_source_1.AppDataSource.getRepository(ServiceCategory_1.ServiceCategory);
 const JWT_SECRET = process.env.JWT_SECRET || "super_secret_jwt_key_here";
+const REFRESH_SECRET = process.env.REFRESH_SECRET || "super_secret_refresh_key_here";
+const generateTokens = (id, role) => {
+    const accessToken = jsonwebtoken_1.default.sign({ id, role }, JWT_SECRET, { expiresIn: "1h" });
+    const refreshToken = jsonwebtoken_1.default.sign({ id, role }, REFRESH_SECRET, { expiresIn: "30d" });
+    return { accessToken, refreshToken };
+};
 const registerVendor = async (req, res) => {
     try {
         const { name, email, mobile, password, address, age, photo, experienceYears, serviceCategoryIds } = req.body;
@@ -79,14 +85,46 @@ const loginVendor = async (req, res) => {
         if (vendor.status === Vendor_1.VendorStatus.REJECTED || vendor.status === Vendor_1.VendorStatus.SUSPENDED) {
             return res.status(403).json({ message: `Access denied. Vendor status: ${vendor.status}` });
         }
-        const token = jsonwebtoken_1.default.sign({ id: vendor.id, role: "VENDOR" }, JWT_SECRET, { expiresIn: "7d" });
-        res.status(200).json({ message: "Login successful", token, vendor });
+        const { accessToken, refreshToken } = generateTokens(vendor.id, "VENDOR");
+        vendor.refreshToken = refreshToken;
+        await vendorRepo.save(vendor);
+        res.status(200).json({ message: "Login successful", accessToken, refreshToken, vendor });
     }
     catch (error) {
         res.status(500).json({ message: "Login failed", error });
     }
 };
 exports.loginVendor = loginVendor;
+const refreshVendorToken = async (req, res) => {
+    try {
+        const { refreshToken: token } = req.body;
+        if (!token)
+            return res.status(400).json({ message: "Refresh token is required" });
+        let decoded;
+        try {
+            decoded = jsonwebtoken_1.default.verify(token, REFRESH_SECRET);
+        }
+        catch {
+            return res.status(401).json({ message: "Invalid or expired refresh token" });
+        }
+        const vendor = await vendorRepo.findOneBy({ id: decoded.id });
+        if (!vendor || vendor.refreshToken !== token) {
+            return res.status(401).json({ message: "Refresh token mismatch or vendor not found" });
+        }
+        const { accessToken, refreshToken: newRefreshToken } = generateTokens(vendor.id, "VENDOR");
+        vendor.refreshToken = newRefreshToken;
+        await vendorRepo.save(vendor);
+        return res.status(200).json({
+            message: "Tokens refreshed successfully",
+            accessToken,
+            refreshToken: newRefreshToken
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: "Error refreshing token", error });
+    }
+};
+exports.refreshVendorToken = refreshVendorToken;
 const getVendorProfile = async (req, res) => {
     try {
         const vendorId = req.user.id;
@@ -137,3 +175,20 @@ const uploadVendorDocument = async (req, res) => {
     }
 };
 exports.uploadVendorDocument = uploadVendorDocument;
+const updateVendorLocation = async (req, res) => {
+    try {
+        const vendorId = req.user.id;
+        const { lat, lng } = req.body;
+        await vendorRepo.createQueryBuilder()
+            .update(Vendor_1.Vendor)
+            .set({ location: () => `ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)` })
+            .where("id = :id", { id: vendorId })
+            .execute();
+        res.status(200).json({ message: "Location updated successfully" });
+    }
+    catch (error) {
+        console.error("Error updating location:", error);
+        res.status(500).json({ message: "Error updating location", error });
+    }
+};
+exports.updateVendorLocation = updateVendorLocation;

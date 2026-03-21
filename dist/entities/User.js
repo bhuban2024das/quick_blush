@@ -20,6 +20,7 @@ let User = class User {
     gender;
     photo;
     isVerified;
+    refreshToken;
     addressBook; // e.g. [{ address: '...', pincode: '...' }]
     walletBalance;
     createdAt;
@@ -58,6 +59,10 @@ __decorate([
     (0, typeorm_1.Column)({ type: "boolean", default: false }),
     __metadata("design:type", Boolean)
 ], User.prototype, "isVerified", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "text", nullable: true }),
+    __metadata("design:type", String)
+], User.prototype, "refreshToken", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "jsonb", nullable: true }),
     __metadata("design:type", Object)

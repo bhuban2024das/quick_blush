@@ -21,6 +21,12 @@ const categoryRepo = data_source_1.AppDataSource.getRepository(ServiceCategory_1
 const serviceRepo = data_source_1.AppDataSource.getRepository(Service_1.Service);
 const purchaseRepo = data_source_1.AppDataSource.getRepository(VendorPurchase_1.VendorPurchase);
 const JWT_SECRET = process.env.JWT_SECRET || "super_secret_jwt_key_here";
+const REFRESH_SECRET = process.env.REFRESH_SECRET || "super_secret_refresh_key_here";
+const generateTokens = (id, role) => {
+    const accessToken = jsonwebtoken_1.default.sign({ id, role }, JWT_SECRET, { expiresIn: "1h" });
+    const refreshToken = jsonwebtoken_1.default.sign({ id, role }, REFRESH_SECRET, { expiresIn: "30d" });
+    return { accessToken, refreshToken };
+};
 const loginAdmin = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -30,8 +36,8 @@ const loginAdmin = async (req, res) => {
         if (!admin || password !== "admin123") {
             return res.status(401).json({ message: "Invalid credentials" });
         }
-        const token = jsonwebtoken_1.default.sign({ id: admin.id, role: "ADMIN" }, JWT_SECRET, { expiresIn: "1d" });
-        res.status(200).json({ message: "Admin login successful", token });
+        const { accessToken, refreshToken } = generateTokens(admin.id, "ADMIN");
+        res.status(200).json({ message: "Admin login successful", accessToken, refreshToken });
     }
     catch (error) {
         res.status(500).json({ message: "Login failed", error });
