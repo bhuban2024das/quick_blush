@@ -832,10 +832,10 @@ async function matchAndPingVendors(bookingId: string, io: any) {
     try {
         const booking = await bookingRepository.findOne({ 
             where: { id: bookingId }, 
-            relations: ["service"] 
+            relations: ["service", "service.category"] 
         });
 
-        if (!booking || !booking.lat || !booking.lng) return;
+        if (!booking || !booking.lat || !booking.lng || !booking.service.category) return;
 
         console.log(`[Matchmaking] Finding vendors for Booking ${booking.id}...`);
 
@@ -848,10 +848,10 @@ async function matchAndPingVendors(bookingId: string, io: any) {
         // 5. Availability: Not currently busy
 
         const nearbyVendors = await vendorRepo.createQueryBuilder("vendor")
-            .leftJoin("vendor.services", "service")
+            .leftJoin("vendor.serviceCategories", "category")
             .where("vendor.status = :status", { status: VendorStatus.APPROVED })
             .andWhere("vendor.isOnline = :isOnline", { isOnline: true })
-            .andWhere("service.id = :serviceId", { serviceId: booking.service.id })
+            .andWhere("category.id = :categoryId", { categoryId: booking.service.category.id })
             .andWhere(`ST_DistanceSphere(vendor.location, ST_SetSRID(ST_Point(:lng, :lat), 4326)) <= :radius`, { 
                 lng: booking.lng, 
                 lat: booking.lat, 
