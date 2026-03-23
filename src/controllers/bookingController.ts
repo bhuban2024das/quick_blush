@@ -843,13 +843,27 @@ async function matchAndPingVendors(bookingId: string, io: any) {
 
         // --- DEBUG LOGGING ---
         console.log(`[DEBUG] Booking Req -> Lat: ${booking.lat}, Lng: ${booking.lng}, CategoryId: ${booking.service.category?.id}, ServiceId: ${booking.service.id}`);
-        const debugVendors = await vendorRepo.createQueryBuilder("vendor")
-            .leftJoinAndSelect("vendor.serviceCategories", "category")
-            .getMany();
-        
-        for (const dv of debugVendors) {
-            console.log(`[DEBUG] Vendor ${dv.name} (${dv.id}) -> Status: ${dv.status}, isOnline: ${dv.isOnline}, Location: ${dv.location}`);
-            console.log(`        Categories: ${dv.serviceCategories?.map(c => c.id).join(", ")}`);
+        try {
+            const rawDebugVendors = await AppDataSource.query(`
+                SELECT 
+                    v.id, v.name, v.status, v."isOnline", 
+                    ST_DistanceSphere(v.location, ST_SetSRID(ST_Point($1, $2), 4326)) / 1000 AS distance_km,
+                    EXISTS(
+                        SELECT 1 FROM vendor_service_categories vsc 
+                        WHERE vsc.vendor_id = v.id AND vsc.category_id = $3
+                    ) as has_category,
+                    EXISTS(
+                        SELECT 1 FROM bookings b 
+                        WHERE b."vendorId" = v.id AND b.status IN ('VENDOR_ASSIGNED', 'VENDOR_ENROUTE', 'ARRIVED', 'IN_PROGRESS')
+                    ) as is_busy
+                FROM vendors v
+            `, [booking.lng, booking.lat, booking.service.category.id]);
+
+            for (const rv of rawDebugVendors) {
+                console.log(`[DEBUG] Vendor: ${rv.name} | Approved? ${rv.status === 'APPROVED'} | Online? ${rv.isOnline} | Has Category? ${rv.has_category} | Distance: ${rv.distance_km ? Number(rv.distance_km).toFixed(2) + 'km' : 'No Location'} (Pass? ${rv.distance_km <= 10}) | Not Busy? ${!rv.is_busy}`);
+            }
+        } catch (dbErr) {
+            console.error("[DEBUG] Error running debug query:", dbErr);
         }
         // --- END DEBUG LOGGING ---
 
