@@ -3,6 +3,7 @@ import "reflect-metadata";
 import http from "http";
 import app from "./app";
 import { AppDataSource } from "./config/data-source";
+import { Vendor } from "./entities/Vendor";
 import { Server as SocketIOServer } from "socket.io";
 import * as dotenv from "dotenv";
 
@@ -34,9 +35,22 @@ async function bootstrap() {
             console.log(`Socket connected: ${socket.id}`);
 
             // Vendor emitting their live location
-            socket.on("vendor:location_update", (data) => {
+            socket.on("vendor:location_update", async (data) => {
                 // data = { vendorId, lat, lng }
-                // In a real app, save to Redis for fast geospatial queries
+                try {
+                    if (data.vendorId && data.lat && data.lng) {
+                        const vendorRepo = AppDataSource.getRepository(Vendor);
+                        await vendorRepo.update(data.vendorId, {
+                            location: {
+                                type: "Point",
+                                coordinates: [parseFloat(data.lng), parseFloat(data.lat)]
+                            } as any
+                        });
+                    }
+                } catch (err) {
+                    console.error("Error updating vendor location:", err);
+                }
+
                 // Broadcast to users tracking this vendor
                 socket.broadcast.emit(`user:track_vendor_${data.vendorId}`, data);
             });
