@@ -11,9 +11,18 @@ export const getPendingJobs = async (req: any, res: Response) => {
         const vendorId = req.user.id;
         // Simplification: In reality, jobs are matched geographically and broadcasted via Sockets.
         // Here we just fetch jobs strictly assigned or broadly unassigned (pending)
+        const { In } = require("typeorm"); // Ensure In is available
+        const activeStatuses = [
+            BookingStatus.CONFIRMED,
+            BookingStatus.VENDOR_ASSIGNED,
+            BookingStatus.VENDOR_ENROUTE,
+            BookingStatus.ARRIVED,
+            BookingStatus.IN_PROGRESS
+        ];
+
         const bookings = await bookingRepo.find({
             where: [
-                { vendor: { id: vendorId }, status: BookingStatus.CONFIRMED },
+                { vendor: { id: vendorId }, status: In(activeStatuses) },
                 { vendor: undefined, status: BookingStatus.CONFIRMED }
             ]
         });
