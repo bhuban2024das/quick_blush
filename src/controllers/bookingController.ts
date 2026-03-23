@@ -841,6 +841,18 @@ async function matchAndPingVendors(bookingId: string, io: any) {
 
         const vendorRepo = AppDataSource.getRepository(Vendor);
 
+        // --- DEBUG LOGGING ---
+        console.log(`[DEBUG] Booking Req -> Lat: ${booking.lat}, Lng: ${booking.lng}, CategoryId: ${booking.service.category?.id}, ServiceId: ${booking.service.id}`);
+        const debugVendors = await vendorRepo.createQueryBuilder("vendor")
+            .leftJoinAndSelect("vendor.serviceCategories", "category")
+            .getMany();
+        
+        for (const dv of debugVendors) {
+            console.log(`[DEBUG] Vendor ${dv.name} (${dv.id}) -> Status: ${dv.status}, isOnline: ${dv.isOnline}, Location: ${dv.location}`);
+            console.log(`        Categories: ${dv.serviceCategories?.map(c => c.id).join(", ")}`);
+        }
+        // --- END DEBUG LOGGING ---
+
         // 1. Proximity: Within 10km radius
         // 2. Status: APPROVED
         // 3. Online: isOnline = true
