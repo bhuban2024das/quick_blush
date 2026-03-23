@@ -888,7 +888,8 @@ async function matchAndPingVendors(bookingId: string, io: any) {
             .getMany();
 
         if (nearbyVendors.length > 0) {
-            console.log(`[Matchmaking] Success! Found ${nearbyVendors.length} eligible vendors within 10km: ${nearbyVendors.map(v => `${v.name} (${v.id})`).join(', ')}`);
+            console.log(`[Matchmaking] Success! Found ${nearbyVendors.length} eligible vendors within 10km.`);
+            console.log(`[Matchmaking] Matched Vendors: ${nearbyVendors.map(v => v.name).join(', ')}`);
             
             // Broadcast the ping to Vendor Apps
             io.emit("vendor:new_job_alert", {
