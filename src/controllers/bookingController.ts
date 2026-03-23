@@ -549,8 +549,8 @@ export const markEnRoute = async (req: Request, res: Response) => {
         const booking = await bookingRepository.findOne({ where: { id: bookingId } });
         if (!booking) return res.status(404).json({ message: "Booking not found" });
 
-        if (booking.status !== BookingStatus.VENDOR_ASSIGNED) {
-            return res.status(400).json({ message: `Cannot mark en route. Expected status VENDOR_ASSIGNED but got ${booking.status}` });
+        if (booking.status !== BookingStatus.VENDOR_ASSIGNED && booking.status !== BookingStatus.CONFIRMED) {
+            return res.status(400).json({ message: `Cannot mark en route. Expected status VENDOR_ASSIGNED or CONFIRMED but got ${booking.status}` });
         }
 
         booking.status = BookingStatus.VENDOR_ENROUTE;
