@@ -32,6 +32,29 @@ export const getPendingJobs = async (req: any, res: Response) => {
     }
 };
 
+export const getVendorJobHistory = async (req: any, res: Response) => {
+    try {
+        const vendorId = req.user.id;
+        const { In } = require("typeorm");
+        
+        const historyStatuses = [
+            BookingStatus.SERVICE_ENDED,
+            BookingStatus.COMPLETED,
+            BookingStatus.CANCELLED
+        ];
+
+        const bookings = await bookingRepo.find({
+            where: { vendor: { id: vendorId }, status: In(historyStatuses) },
+            order: { scheduledDate: "DESC", scheduledTime: "DESC" },
+            relations: ["user", "service", "addons"]
+        });
+
+        res.status(200).json(bookings);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching job history", error });
+    }
+};
+
 export const acceptJob = async (req: any, res: Response) => {
     try {
         const vendorId = req.user.id;

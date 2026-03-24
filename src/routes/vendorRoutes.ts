@@ -142,7 +142,7 @@ router.post("/login", validateRequest(loginVendorSchema), loginVendor);
 router.post("/refresh-token", refreshVendorToken);
 
 import { getCurrentSubscription, purchaseSubscription } from "../controllers/vendorSubscriptionController";
-import { getPendingJobs, acceptJob, rejectJob, updateJobStatus } from "../controllers/vendorJobController";
+import { getPendingJobs, acceptJob, rejectJob, updateJobStatus, getVendorJobHistory } from "../controllers/vendorJobController";
 
 /**
  * @swagger
@@ -258,6 +258,23 @@ router.post("/subscription/purchase", authenticateJWT, authorizeRole("VENDOR"), 
  *         description: List of pending bookings
  */
 router.get("/jobs/pending", authenticateJWT, authorizeRole("VENDOR"), getPendingJobs);
+
+/**
+ * @swagger
+ * /api/vendors/jobs/history:
+ *   get:
+ *     summary: Get all completed/cancelled jobs for vendor
+ *     tags: [Vendors]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of historical bookings
+ *       500:
+ *         description: Error fetching history
+ */
+router.get("/jobs/history", authenticateJWT, authorizeRole("VENDOR"), getVendorJobHistory);
+
 
 /**
  * @swagger
