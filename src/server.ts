@@ -17,6 +17,20 @@ async function bootstrap() {
         await AppDataSource.initialize();
         console.log("🚀 Custom Database connection initialized");
 
+        // Automatically patch the PostgreSQL Enum to accept the new PAY_AFTER_SERVICE value
+        try {
+            await AppDataSource.query(`ALTER TYPE bookings_paymentstatus_enum ADD VALUE IF NOT EXISTS 'PAY_AFTER_SERVICE';`);
+            console.log("✅ Verified PaymentStatus Enum in Database");
+        } catch(e) {
+            // Fallback for older PostgreSQL versions that don't support IF NOT EXISTS on ALTER TYPE
+            try {
+                await AppDataSource.query(`ALTER TYPE bookings_paymentstatus_enum ADD VALUE 'PAY_AFTER_SERVICE';`);
+                console.log("✅ Added PAY_AFTER_SERVICE to Database Enum");
+            } catch (err) {
+                // Ignore if it already exists
+            }
+        }
+
         // Create HTTP Server
         const server = http.createServer(app);
 
