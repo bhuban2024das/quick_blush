@@ -142,7 +142,7 @@ router.post("/login", validateRequest(loginVendorSchema), loginVendor);
 router.post("/refresh-token", refreshVendorToken);
 
 import { getCurrentSubscription, purchaseSubscription } from "../controllers/vendorSubscriptionController";
-import { getPendingJobs, acceptJob, rejectJob, updateJobStatus, getVendorJobHistory } from "../controllers/vendorJobController";
+import { getPendingJobs, acceptJob, rejectJob, updateJobStatus, getVendorJobHistory, confirmPayment } from "../controllers/vendorJobController";
 
 /**
  * @swagger
@@ -315,6 +315,35 @@ router.post("/jobs/:bookingId/accept", authenticateJWT, authorizeRole("VENDOR"),
  *         description: Job rejected
  */
 router.post("/jobs/:bookingId/reject", authenticateJWT, authorizeRole("VENDOR"), rejectJob);
+
+/**
+ * @swagger
+ * /api/vendors/jobs/{bookingId}/confirm-payment:
+ *   post:
+ *     summary: Confirm cash/QR payment for PAY_AFTER_SERVICE
+ *     tags: [Vendors]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: bookingId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               method:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Payment confirmed
+ */
+router.post("/jobs/:bookingId/confirm-payment", authenticateJWT, authorizeRole("VENDOR"), confirmPayment);
 
 /**
  * @swagger

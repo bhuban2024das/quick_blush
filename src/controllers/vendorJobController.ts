@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { AppDataSource } from "../config/data-source";
-import { Booking, BookingStatus } from "../entities/Booking";
+import { Booking, BookingStatus, PaymentStatus } from "../entities/Booking";
 import { Vendor } from "../entities/Vendor";
 
 const bookingRepo = AppDataSource.getRepository(Booking);
@@ -129,5 +129,33 @@ export const updateJobStatus = async (req: any, res: Response) => {
         res.status(200).json({ message: `Status updated to ${status}`, booking });
     } catch (error) {
         res.status(500).json({ message: "Error updating job status", error });
+    }
+};
+
+export const confirmPayment = async (req: any, res: Response) => {
+    try {
+        const vendorId = req.user.id;
+        const { bookingId } = req.params;
+        const { method } = req.body; // 'CASH' | 'QR'
+
+        const booking = await bookingRepo.findOne({
+            where: { id: bookingId, vendor: { id: vendorId } }
+        });
+
+        if (!booking) return res.status(404).json({ message: "Booking not found or not assigned to you" });
+
+        if (booking.paymentStatus !== PaymentStatus.PAY_AFTER_SERVICE) {
+            return res.status(400).json({ message: "This booking is not set to Pay After Service, or is already paid." });
+        }
+
+        booking.paymentStatus = PaymentStatus.PAID;
+        await bookingRepo.save(booking);
+
+        res.status(200).json({ 
+            message: `Payment successfully collected via ${method}`, 
+            booking 
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error confirming payment", error });
     }
 };
