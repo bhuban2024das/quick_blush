@@ -3,8 +3,9 @@ import "reflect-metadata";
 import http from "http";
 import app from "./app";
 import { AppDataSource } from "./config/data-source";
-import { Vendor } from "./entities/Vendor";
 import { Server as SocketIOServer } from "socket.io";
+import { createAdapter } from "@socket.io/redis-adapter";
+import { redisCache, redisSubClient } from "./config/redis";
 import * as dotenv from "dotenv";
 
 dotenv.config();
@@ -42,6 +43,9 @@ async function bootstrap() {
             }
         });
 
+        // Attach Redis adapter to power Pub/Sub messaging across scaled instances
+        io.adapter(createAdapter(redisCache, redisSubClient));
+
         // Make Socket.io accessible in Express controllers
         app.set("io", io);
 
@@ -53,19 +57,22 @@ async function bootstrap() {
                 // data = { vendorId, lat, lng }
                 try {
                     if (data.vendorId && data.lat && data.lng) {
-                        const vendorRepo = AppDataSource.getRepository(Vendor);
-                        await vendorRepo.update(data.vendorId, {
-                            location: {
-                                type: "Point",
-                                coordinates: [parseFloat(data.lng), parseFloat(data.lat)]
-                            } as any
-                        });
+                        // Store in Redis (ultra-fast in-memory cache), automatically expiring after 2 hours
+                        await redisCache.set(
+                            `vendor_loc:${data.vendorId}`,
+                            JSON.stringify({ lat: data.lat, lng: data.lng, timestamp: Date.now() }),
+                            "EX",
+                            7200
+                        );
+                        
+                        // We safely DELETED the Postgres AppDataSource.getRepository(Vendor).update(...) here
+                        // to prevent database crashes and disk lockouts under high tracking load.
                     }
                 } catch (err) {
-                    console.error("Error updating vendor location:", err);
+                    console.error("Error caching vendor location in Redis:", err);
                 }
 
-                // Broadcast to users tracking this vendor
+                // Broadcast instantly to users tracking this vendor
                 socket.broadcast.emit(`user:track_vendor_${data.vendorId}`, data);
             });
 

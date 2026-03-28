@@ -5,6 +5,7 @@ import { BookingAddon } from "../entities/BookingAddon";
 import { BookingTimeline } from "../entities/BookingTimeline";
 import { Service } from "../entities/Service";
 import { Vendor, VendorStatus } from "../entities/Vendor";
+import { redisCache } from "../config/redis";
 
 const bookingRepository = AppDataSource.getRepository(Booking);
 const serviceRepository = AppDataSource.getRepository(Service);
@@ -731,15 +732,29 @@ export const getVendorLocation = async (req: Request, res: Response) => {
         const { vendorId } = req.query;
         if (!vendorId) return res.status(400).json({ message: "vendorId is required" });
 
-        // In a complete implementation, this would fetch from Redis
-        // For now, we mock a response
-        res.status(200).json({
-            vendorId,
-            lat: 28.6139,
-            lng: 77.2090,
-            timestamp: new Date()
-        });
+        // First, attempt to grab high-frequency GPS from Redis cache
+        const cachedLocation = await redisCache.get(`vendor_loc:${vendorId}`);
+        if (cachedLocation) {
+            const data = JSON.parse(cachedLocation);
+            return res.status(200).json({ vendorId, lat: data.lat, lng: data.lng, timestamp: data.timestamp });
+        }
+
+        // Fallback to PostgreSQL if the cache expired (vendor offline or inactive for 2+ hours)
+        const vendorRepo = AppDataSource.getRepository(Vendor);
+        const vendor = await vendorRepo.findOne({ where: { id: String(vendorId) } });
+        
+        if (vendor && vendor.location && vendor.location.coordinates) {
+            return res.status(200).json({
+                vendorId,
+                lat: vendor.location.coordinates[1],
+                lng: vendor.location.coordinates[0],
+                timestamp: vendor.updatedAt
+            });
+        }
+
+        return res.status(404).json({ message: "Vendor live location not found in cache or database" });
     } catch (error) {
+        console.error("Error fetching vendor location:", error);
         res.status(500).json({ message: "Error fetching location", error });
     }
 };
