@@ -743,13 +743,16 @@ export const getVendorLocation = async (req: Request, res: Response) => {
         const vendorRepo = AppDataSource.getRepository(Vendor);
         const vendor = await vendorRepo.findOne({ where: { id: String(vendorId) } });
         
-        if (vendor && vendor.location && vendor.location.coordinates) {
-            return res.status(200).json({
-                vendorId,
-                lat: vendor.location.coordinates[1],
-                lng: vendor.location.coordinates[0],
-                timestamp: vendor.updatedAt
-            });
+        if (vendor && vendor.location) {
+            const geom = vendor.location as any;
+            if (geom.coordinates) {
+                return res.status(200).json({
+                    vendorId,
+                    lat: geom.coordinates[1],
+                    lng: geom.coordinates[0],
+                    timestamp: vendor.updatedAt
+                });
+            }
         }
 
         return res.status(404).json({ message: "Vendor live location not found in cache or database" });
