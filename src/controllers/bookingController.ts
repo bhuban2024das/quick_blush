@@ -313,8 +313,8 @@ export const getCustomerNotes = async (req: Request, res: Response) => {
 
 export const confirmBooking = async (req: Request, res: Response) => {
     try {
-        const { bookingId, transactionId } = req.body;
-        // In a real scenario, we'd verify the transactionId with PayU here
+        const { bookingId, transactionId, paymentMethod } = req.body;
+        // paymentMethod could be "PAY_NOW" or "PAY_AFTER_SERVICE"
 
         if (!bookingId) return res.status(400).json({ message: "bookingId is required" });
 
@@ -326,13 +326,21 @@ export const confirmBooking = async (req: Request, res: Response) => {
         }
 
         booking.status = BookingStatus.CONFIRMED;
-        booking.paymentStatus = PaymentStatus.PAID;
-        await bookingRepository.save(booking);
 
         const timeline = new BookingTimeline();
         timeline.booking = booking;
         timeline.statusReached = BookingStatus.CONFIRMED;
-        timeline.description = `Payment verified (Txn: ${transactionId || "N/A"}). Booking confirmed and searching for vendors.`;
+
+        if (paymentMethod === "PAY_AFTER_SERVICE") {
+            booking.paymentStatus = PaymentStatus.PAY_AFTER_SERVICE;
+            timeline.description = "User opted to Pay After Service. Booking confirmed and searching for vendors.";
+        } else {
+            // Default to PAY_NOW mock behavior
+            booking.paymentStatus = PaymentStatus.PAID;
+            timeline.description = `Payment verified (Txn: ${transactionId || "MOCK_SUCCESS"}). Booking confirmed and searching for vendors.`;
+        }
+
+        await bookingRepository.save(booking);
         await AppDataSource.getRepository(BookingTimeline).save(timeline);
 
         // --- Run Matchmaking Algorithm ---
@@ -343,7 +351,6 @@ export const confirmBooking = async (req: Request, res: Response) => {
 
         res.status(200).json({ message: "Booking confirmed successfully", booking });
     } catch (error) {
-
         console.error("Error confirming booking:", error);
         res.status(500).json({ message: "Error confirming booking", error });
     }

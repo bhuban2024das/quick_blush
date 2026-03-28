@@ -349,6 +349,9 @@ router.get("/:id", getBookingById); // Full Details
  *                 type: string
  *               transactionId:
  *                 type: string
+ *               paymentMethod:
+ *                 type: string
+ *                 description: "PAY_NOW" or "PAY_AFTER_SERVICE"
  *     responses:
  *       200:
  *         description: Booking confirmed
