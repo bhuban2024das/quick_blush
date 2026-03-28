@@ -316,6 +316,10 @@ export const confirmBooking = async (req: Request, res: Response) => {
         const { bookingId, transactionId, paymentMethod } = req.body;
         // paymentMethod could be "PAY_NOW" or "PAY_AFTER_SERVICE"
 
+        console.log("====== DEBUG BACKEND confirmBooking ======");
+        console.log("Received req.body:", req.body);
+        console.log("Extracted paymentMethod:", paymentMethod);
+
         if (!bookingId) return res.status(400).json({ message: "bookingId is required" });
 
         const booking = await bookingRepository.findOneBy({ id: bookingId });
