@@ -13,6 +13,7 @@ import {
     confirmBooking,
     cancelBooking,
     rescheduleBooking,
+    updateBookingAddress,
     reassignVendor,
     rebook,
     assignVendor,
@@ -423,6 +424,36 @@ router.post("/cancel", cancelBooking);
  *         description: Cannot reschedule booking in its current state
  */
 router.post("/reschedule", rescheduleBooking);
+
+/**
+ * @swagger
+ * /api/bookings/address:
+ *   post:
+ *     summary: Update an active booking's address
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - bookingId
+ *               - newAddress
+ *             properties:
+ *               bookingId:
+ *                 type: string
+ *               newAddress:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Address updated successfully
+ *       400:
+ *         description: Cannot update address in current state
+ */
+router.post("/address", updateBookingAddress);
 /**
  * @swagger
  * /api/bookings/reassign-vendor:

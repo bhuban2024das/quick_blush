@@ -435,6 +435,41 @@ export const rescheduleBooking = async (req: Request, res: Response) => {
     }
 };
 
+export const updateBookingAddress = async (req: Request, res: Response) => {
+    try {
+        const userId = (req as any).user.id;
+        const { bookingId, newAddress } = req.body;
+
+        if (!bookingId || !newAddress) {
+            return res.status(400).json({ message: "bookingId and newAddress are required" });
+        }
+
+        const booking = await bookingRepository.findOne({
+            where: { id: bookingId, user: { id: userId } }
+        });
+
+        if (!booking) return res.status(404).json({ message: "Booking not found" });
+
+        if (booking.status === BookingStatus.COMPLETED || booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.IN_PROGRESS) {
+            return res.status(400).json({ message: "Cannot update address for a booking in its current state" });
+        }
+
+        booking.address = newAddress;
+        await bookingRepository.save(booking);
+
+        const timeline = new BookingTimeline();
+        timeline.booking = booking;
+        timeline.statusReached = booking.status; // status remains the same
+        timeline.description = `Customer updated the service address.`;
+        await AppDataSource.getRepository(BookingTimeline).save(timeline);
+
+        res.status(200).json({ message: "Address updated successfully", booking });
+    } catch (error) {
+        console.error("Error updating booking address:", error);
+        res.status(500).json({ message: "Error updating booking address", error });
+    }
+};
+
 export const reassignVendor = async (req: Request, res: Response) => {
     try {
         const { bookingId } = req.body;
