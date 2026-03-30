@@ -78,6 +78,16 @@ export const acceptJob = async (req: any, res: Response) => {
         vendor!.consecutiveRejections = 0; // reset
         await vendorRepo.save(vendor!);
 
+        // Broadcast directly to users
+        const io = req.app.get("io");
+        if (io) {
+            io.emit(`booking:update_${booking.id}`, {
+                bookingId: booking.id,
+                status: booking.status,
+                vendor: vendor
+            });
+        }
+
         res.status(200).json({ message: "Job accepted", booking });
     } catch (error) {
         res.status(500).json({ message: "Error accepting job", error });
@@ -126,6 +136,15 @@ export const updateJobStatus = async (req: any, res: Response) => {
         booking.status = status;
         await bookingRepo.save(booking);
 
+        // Broadcast directly to users
+        const io = req.app.get("io");
+        if (io) {
+            io.emit(`booking:update_${booking.id}`, {
+                bookingId: booking.id,
+                status: booking.status
+            });
+        }
+
         res.status(200).json({ message: `Status updated to ${status}`, booking });
     } catch (error) {
         res.status(500).json({ message: "Error updating job status", error });
@@ -150,6 +169,16 @@ export const confirmPayment = async (req: any, res: Response) => {
 
         booking.paymentStatus = PaymentStatus.PAID;
         await bookingRepo.save(booking);
+
+        // Broadcast directly to users
+        const io = req.app.get("io");
+        if (io) {
+            io.emit(`booking:update_${booking.id}`, {
+                bookingId: booking.id,
+                status: booking.status,
+                paymentStatus: booking.paymentStatus
+            });
+        }
 
         res.status(200).json({ 
             message: `Payment successfully collected via ${method}`, 
