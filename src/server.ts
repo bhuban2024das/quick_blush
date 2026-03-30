@@ -37,6 +37,7 @@ async function bootstrap() {
 
         // Initialize Socket.io
         const io = new SocketIOServer(server, {
+            path: "/api/socket.io",
             cors: {
                 origin: "*",
                 methods: ["GET", "POST"]
