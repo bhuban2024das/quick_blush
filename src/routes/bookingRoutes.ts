@@ -114,26 +114,6 @@ router.post("/create", createBooking);
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - serviceId
- *               - address
- *               - lat
- *               - lng
- *             properties:
- *               serviceId:
- *                 type: string
- *               address:
- *                 type: string
- *               lat:
- *                 type: number
- *               lng:
- *                 type: number
- *               customerNotes:
- *                 type: string
- *               addons:
- *                 type: array
- *                 items:
- *                   type: object
  *                   properties:
  *                     name:
  *                       type: string

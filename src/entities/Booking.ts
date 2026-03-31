@@ -50,6 +50,12 @@ export class Booking {
     @Column({ type: "text" })
     address!: string;
 
+    @Column({ type: "jsonb", nullable: true })
+    addressDetails!: any;
+
+    @Column({ type: "varchar", length: 20, nullable: true })
+    contactNumber!: string;
+
     @Column({ type: "text", nullable: true })
     customerNotes!: string;
 

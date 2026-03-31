@@ -32,6 +32,15 @@ async function bootstrap() {
             }
         }
 
+        // Automatically patch the PostgreSQL Schema to add Urban Company address fields gracefully
+        try {
+            await AppDataSource.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS "addressDetails" JSONB;`);
+            await AppDataSource.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS "contactNumber" VARCHAR(20);`);
+            console.log("✅ Verified Structured Address schema in Database");
+        } catch(e) {
+            console.error("⚠️ Could not patch Structured Address columns:", e);
+        }
+
         // Create HTTP Server
         const server = http.createServer(app);
 

@@ -5,6 +5,7 @@ import { BookingAddon } from "../entities/BookingAddon";
 import { BookingTimeline } from "../entities/BookingTimeline";
 import { Service } from "../entities/Service";
 import { Vendor, VendorStatus } from "../entities/Vendor";
+import { User } from "../entities/User";
 import { redisCache } from "../config/redis";
 import axios from "axios";
 
@@ -16,9 +17,29 @@ const serviceRepository = AppDataSource.getRepository(Service);
 export const createBooking = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).user.id;
-        const { serviceId, scheduledDate, scheduledTime, lat, lng, address, customerNotes, addons } = req.body;
+        const user = await AppDataSource.getRepository(User).findOneBy({ id: userId });
+        
+        const { serviceId, scheduledDate, scheduledTime, lat, lng, address, customerNotes, instructions, contactNumber, addons } = req.body;
 
-        if (!serviceId || !scheduledDate || !scheduledTime || !address) {
+        // Structured Location & Address Handling (Urban Company logic)
+        let finalLat = lat;
+        let finalLng = lng;
+        let finalAddressString = "";
+        let addressDetails: any = null;
+
+        if (address && typeof address === "object") {
+            finalAddressString = address.fullAddress || JSON.stringify(address);
+            addressDetails = { ...address };
+            
+            if (address.location && address.location.lat && address.location.lng) {
+                finalLat = address.location.lat;
+                finalLng = address.location.lng;
+            }
+        } else {
+            finalAddressString = address || "";
+        }
+
+        if (!serviceId || !scheduledDate || !scheduledTime || !finalAddressString) {
             return res.status(400).json({ message: "serviceId, scheduledDate, scheduledTime, and address are required" });
         }
 
@@ -31,7 +52,6 @@ export const createBooking = async (req: Request, res: Response) => {
 
         if (addons && Array.isArray(addons)) {
             for (const addon of addons) {
-                // In reality, lookup prices from a Db Addon dictionary, but for now we accept the client's payload or mock it
                 const price = Number(addon.price) || 0;
                 totalAmount += price;
 
@@ -50,10 +70,12 @@ export const createBooking = async (req: Request, res: Response) => {
             status: BookingStatus.PENDING_PAYMENT,
             paymentStatus: PaymentStatus.PENDING,
             totalAmount,
-            lat,
-            lng,
-            address,
-            customerNotes,
+            lat: finalLat,
+            lng: finalLng,
+            address: finalAddressString,
+            addressDetails: addressDetails,
+            contactNumber: contactNumber || (user ? user.mobile : null),
+            customerNotes: instructions || customerNotes,
             addons: bookingAddons
         });
 
@@ -77,9 +99,29 @@ export const createBooking = async (req: Request, res: Response) => {
 export const instantBooking = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).user.id;
-        const { serviceId, lat, lng, address, customerNotes, addons } = req.body;
+        const user = await AppDataSource.getRepository(User).findOneBy({ id: userId });
 
-        if (!serviceId || !address || !lat || !lng) {
+        const { serviceId, lat, lng, address, customerNotes, instructions, contactNumber, addons } = req.body;
+
+        // Structured Location & Address Handling
+        let finalLat = lat;
+        let finalLng = lng;
+        let finalAddressString = "";
+        let addressDetails: any = null;
+
+        if (address && typeof address === "object") {
+            finalAddressString = address.fullAddress || JSON.stringify(address);
+            addressDetails = { ...address };
+            
+            if (address.location && address.location.lat && address.location.lng) {
+                finalLat = address.location.lat;
+                finalLng = address.location.lng;
+            }
+        } else {
+            finalAddressString = address || "";
+        }
+
+        if (!serviceId || !finalAddressString || !finalLat || !finalLng) {
             return res.status(400).json({ message: "serviceId, address, lat, and lng are required for instant bookings" });
         }
 
@@ -115,10 +157,12 @@ export const instantBooking = async (req: Request, res: Response) => {
             status: BookingStatus.PENDING_PAYMENT,
             paymentStatus: PaymentStatus.PENDING,
             totalAmount,
-            lat,
-            lng,
-            address,
-            customerNotes,
+            lat: finalLat,
+            lng: finalLng,
+            address: finalAddressString,
+            addressDetails: addressDetails,
+            contactNumber: contactNumber || (user ? user.mobile : null),
+            customerNotes: instructions || customerNotes,
             addons: bookingAddons
         });
 
