@@ -39,8 +39,30 @@ export const createBooking = async (req: Request, res: Response) => {
             finalAddressString = address || "";
         }
 
-        if (!serviceId || !scheduledDate || !scheduledTime || !finalAddressString || !finalLat || !finalLng) {
-            return res.status(400).json({ message: "serviceId, scheduledDate, scheduledTime, address, lat, and lng are strictly required" });
+        if (!serviceId || !scheduledDate || !scheduledTime || !finalAddressString) {
+            return res.status(400).json({ message: "serviceId, scheduledDate, scheduledTime, and address are required" });
+        }
+
+        // [SAFETY NET] If the Flutter app sent a raw string without GPS precision, we mathematically Geocode it here:
+        if (!finalLat || !finalLng) {
+            const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+            if (!apiKey) return res.status(500).json({ message: "Server missing GOOGLE_MAPS_API_KEY for automatic address geocoding" });
+
+            try {
+                const geoRes = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json`, {
+                    params: { address: finalAddressString, key: apiKey }
+                });
+
+                if (geoRes.data.status === "OK" && geoRes.data.results.length > 0) {
+                    finalLat = geoRes.data.results[0].geometry.location.lat;
+                    finalLng = geoRes.data.results[0].geometry.location.lng;
+                } else {
+                    return res.status(400).json({ message: "We could not map that address precisely. Please provide a more accurate address or exact GPS lat/lng." });
+                }
+            } catch (err) {
+                console.error("Geocoding Fallback Error:", err);
+                return res.status(500).json({ message: "Warning: Google Maps Geocoding service crashed while parsing the text address" });
+            }
         }
 
         const service = await serviceRepository.findOneBy({ id: serviceId });
@@ -121,8 +143,30 @@ export const instantBooking = async (req: Request, res: Response) => {
             finalAddressString = address || "";
         }
 
-        if (!serviceId || !finalAddressString || !finalLat || !finalLng) {
-            return res.status(400).json({ message: "serviceId, address, lat, and lng are required for instant bookings" });
+        if (!serviceId || !finalAddressString) {
+            return res.status(400).json({ message: "serviceId and address are required for instant bookings" });
+        }
+
+        // [SAFETY NET] If the Flutter app sent a raw string without GPS precision, we mathematically Geocode it here:
+        if (!finalLat || !finalLng) {
+            const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+            if (!apiKey) return res.status(500).json({ message: "Server missing GOOGLE_MAPS_API_KEY for automatic address geocoding" });
+
+            try {
+                const geoRes = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json`, {
+                    params: { address: finalAddressString, key: apiKey }
+                });
+
+                if (geoRes.data.status === "OK" && geoRes.data.results.length > 0) {
+                    finalLat = geoRes.data.results[0].geometry.location.lat;
+                    finalLng = geoRes.data.results[0].geometry.location.lng;
+                } else {
+                    return res.status(400).json({ message: "We could not map that address precisely. Please provide a more accurate address or exact GPS lat/lng." });
+                }
+            } catch (err) {
+                console.error("Geocoding Fallback Error:", err);
+                return res.status(500).json({ message: "Warning: Google Maps Geocoding service crashed while parsing the text address" });
+            }
         }
 
         const service = await serviceRepository.findOneBy({ id: serviceId });
