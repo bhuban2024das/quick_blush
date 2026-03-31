@@ -23,6 +23,7 @@ import {
     endService,
     completeBooking,
     getVendorLocation,
+    getRouteAndETA,
     addAddon,
     removeAddon,
     tipVendor,
@@ -285,6 +286,28 @@ router.get("/customer-notes", getCustomerNotes);
  *         description: vendorId, lat, lng, and timestamp
  */
 router.get("/vendor-location", getVendorLocation);
+
+/**
+ * @swagger
+ * /api/bookings/{bookingId}/route-eta:
+ *   get:
+ *     summary: Render the mathematical Map Route and ETA for the flutter application
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: bookingId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Encoded Polyline string and ETA cache.
+ *       400:
+ *         description: Missing coordinates or API Error.
+ */
+router.get("/:bookingId/route-eta", getRouteAndETA);
 
 /**
  * @swagger

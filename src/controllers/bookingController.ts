@@ -6,6 +6,7 @@ import { BookingTimeline } from "../entities/BookingTimeline";
 import { Service } from "../entities/Service";
 import { Vendor, VendorStatus } from "../entities/Vendor";
 import { redisCache } from "../config/redis";
+import axios from "axios";
 
 const bookingRepository = AppDataSource.getRepository(Booking);
 const serviceRepository = AppDataSource.getRepository(Service);
@@ -759,6 +760,96 @@ export const getVendorLocation = async (req: Request, res: Response) => {
     } catch (error) {
         console.error("Error fetching vendor location:", error);
         res.status(500).json({ message: "Error fetching location", error });
+    }
+};
+
+export const getRouteAndETA = async (req: Request, res: Response) => {
+    try {
+        const { bookingId } = req.params;
+
+        // Fetch User's exact Booking Destination Coordinates
+        const booking = await bookingRepository.findOne({
+            where: { id: bookingId },
+            relations: ["vendor"]
+        });
+
+        if (!booking) return res.status(404).json({ message: "Booking not found" });
+        if (!booking.vendor) return res.status(400).json({ message: "No vendor assigned to this booking yet" });
+
+        const userLat = booking.lat;
+        const userLng = booking.lng;
+
+        if (!userLat || !userLng) {
+            return res.status(400).json({ message: "Customer destination coordinates missing" });
+        }
+
+        // 1. Check Redis for Cached Engine (Prevents Google Maps Billing Exploits)
+        const cacheKey = `route:${bookingId}`;
+        const cachedRoute = await redisCache.get(cacheKey);
+        
+        if (cachedRoute) {
+            // Hit! Zero cost, instantaneous route return.
+            return res.status(200).json(JSON.parse(cachedRoute));
+        }
+
+        // 2. Fetch the absolute latest Vendor Live Coordinate from Redis Tracker
+        const vendorLocStr = await redisCache.get(`vendor_loc:${booking.vendor.id}`);
+        let vendorLat: number;
+        let vendorLng: number;
+
+        if (vendorLocStr) {
+            const vData = JSON.parse(vendorLocStr);
+            vendorLat = vData.lat;
+            vendorLng = vData.lng;
+        } else {
+            // Fallback to PostgreSQL
+            const geom = booking.vendor.location as any;
+            if (geom && geom.coordinates) {
+                vendorLat = geom.coordinates[1];
+                vendorLng = geom.coordinates[0];
+            } else {
+                return res.status(404).json({ message: "Vendor live location unknown" });
+            }
+        }
+
+        // 3. Request Mathematics from Google Maps Distance & Route API
+        const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+        if (!apiKey) {
+            return res.status(500).json({ message: "Server missing GOOGLE_MAPS_API_KEY environment variable" });
+        }
+
+        const response = await axios.get(`https://maps.googleapis.com/maps/api/directions/json`, {
+            params: {
+                origin: `${vendorLat},${vendorLng}`,
+                destination: `${userLat},${userLng}`,
+                key: apiKey
+            }
+        });
+
+        const data = response.data;
+        if (data.status !== "OK" || !data.routes || data.routes.length === 0) {
+            return res.status(400).json({ message: "Could not map route", googleStatus: data.status });
+        }
+
+        // Extract Beautiful Polyline and Time
+        const route = data.routes[0];
+        const leg = route.legs[0];
+
+        const payload = {
+            polyline: route.overview_polyline.points,
+            eta: leg.duration.text,
+            distance: leg.distance.text,
+            origin: { lat: vendorLat, lng: vendorLng },
+            destination: { lat: userLat, lng: userLng }
+        };
+
+        // Cache exactly 5 minutes (300 secs). App will re-render smooth animation off this frozen string.
+        await redisCache.set(cacheKey, JSON.stringify(payload), "EX", 300);
+
+        return res.status(200).json(payload);
+    } catch (error) {
+        console.error("Error generating Route and ETA:", error);
+        res.status(500).json({ message: "Error calculating route math", error });
     }
 };
 
