@@ -40,7 +40,7 @@ export const purchaseSubscriptionSchema = Joi.object({
 });
 
 export const jobStatusSchema = Joi.object({
-    status: Joi.string().valid("EN_ROUTE", "IN_PROGRESS", "COMPLETED").required()
+    status: Joi.string().valid("VENDOR_ENROUTE", "ARRIVED", "IN_PROGRESS", "SERVICE_ENDED", "COMPLETED").required()
 });
 
 export const payoutRequestSchema = Joi.object({
