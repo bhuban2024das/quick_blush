@@ -39,8 +39,8 @@ export const createBooking = async (req: Request, res: Response) => {
             finalAddressString = address || "";
         }
 
-        if (!serviceId || !scheduledDate || !scheduledTime || !finalAddressString) {
-            return res.status(400).json({ message: "serviceId, scheduledDate, scheduledTime, and address are required" });
+        if (!serviceId || !scheduledDate || !scheduledTime || !finalAddressString || !finalLat || !finalLng) {
+            return res.status(400).json({ message: "serviceId, scheduledDate, scheduledTime, address, lat, and lng are strictly required" });
         }
 
         const service = await serviceRepository.findOneBy({ id: serviceId });
