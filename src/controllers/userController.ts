@@ -50,18 +50,22 @@ export const subscribeMembership = async (req: any, res: Response) => {
         // Mathematically calculate 6 months from exactly Date.now()
         const now = new Date();
         const expiryDate = new Date(now.setMonth(now.getMonth() + 6));
+        const newCoins = Number(user.qbCoins || 0) + 1000;
 
-        user.isElite = true;
-        user.eliteExpiryDate = expiryDate;
-        user.qbCoins = Number(user.qbCoins || 0) + 1000;
-
-        await userRepository.save(user);
+        await userRepository.update(
+            { id: userId },
+            {
+                isElite: true,
+                eliteExpiryDate: expiryDate,
+                qbCoins: newCoins
+            }
+        );
 
         res.status(200).json({
             message: "Successfully upgraded to Elite Membership!",
-            isElite: user.isElite,
-            eliteExpiryDate: user.eliteExpiryDate,
-            qbCoins: user.qbCoins
+            isElite: true,
+            eliteExpiryDate: expiryDate,
+            qbCoins: newCoins
         });
     } catch (error) {
         res.status(500).json({ message: "Error subscribing to Elite Membership", error });
