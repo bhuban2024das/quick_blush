@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getProfile, updateProfile } from "../controllers/userController";
+import { getProfile, updateProfile, subscribeMembership } from "../controllers/userController";
 import { getAddresses, addAddress, updateAddress, deleteAddress, setDefaultAddress } from "../controllers/addressController";
 import { authenticateJWT, authorizeRole } from "../middlewares/authMiddleware";
 import { validateRequest } from "../middlewares/validationMiddleware";
@@ -98,6 +98,36 @@ router.post("/profile/upload-photo", authenticateJWT, authorizeRole("USER"));
  *         description: Account deleted successfully
  */
 router.delete("/profile/delete", authenticateJWT, authorizeRole("USER"));
+
+/**
+ * @swagger
+ * /api/users/membership/subscribe:
+ *   post:
+ *     summary: Upgrade the user to an Elite Membership
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully upgraded to Elite Membership
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 isElite:
+ *                   type: boolean
+ *                 eliteExpiryDate:
+ *                   type: string
+ *                   format: date-time
+ *                 qbCoins:
+ *                   type: integer
+ *       404:
+ *         description: User not found
+ */
+router.post("/membership/subscribe", authenticateJWT, authorizeRole("USER"), subscribeMembership);
 
 /**
  * @swagger

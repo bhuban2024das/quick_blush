@@ -41,6 +41,16 @@ async function bootstrap() {
             console.error("⚠️ Could not patch Structured Address columns:", e);
         }
 
+        // Automatically patch the PostgreSQL Schema to add Elite Membership fields gracefully
+        try {
+            await AppDataSource.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS "isElite" BOOLEAN DEFAULT false;`);
+            await AppDataSource.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS "eliteExpiryDate" TIMESTAMP;`);
+            await AppDataSource.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS "qbCoins" INT DEFAULT 0;`);
+            console.log("✅ Verified Elite Membership schema in Database");
+        } catch(e) {
+            console.error("⚠️ Could not patch Elite Membership columns:", e);
+        }
+
         // Create HTTP Server
         const server = http.createServer(app);
 

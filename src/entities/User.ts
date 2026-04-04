@@ -32,6 +32,15 @@ export class User {
     @Column({ type: "jsonb", nullable: true })
     addressBook!: any; // e.g. [{ address: '...', pincode: '...' }]
 
+    @Column({ type: "boolean", default: false })
+    isElite!: boolean;
+
+    @Column({ type: "timestamp", nullable: true })
+    eliteExpiryDate!: Date;
+
+    @Column({ type: "int", default: 0 })
+    qbCoins!: number;
+
     @Column({ type: "decimal", precision: 10, scale: 2, default: 0 })
     walletBalance!: number;
 
