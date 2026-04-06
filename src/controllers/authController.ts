@@ -74,10 +74,11 @@ export const verifyOtp = async (req: Request, res: Response) => {
 
         if (!user) {
             user = userRepository.create({ mobile, isVerified: true });
+            await userRepository.save(user); // Insert first to generate UUID
             isNewUser = true;
         }
 
-        const { accessToken, refreshToken } = generateTokens(user.id || "tmp", "USER");
+        const { accessToken, refreshToken } = generateTokens(user.id, "USER");
 
         // Persist refresh token
         user.refreshToken = refreshToken;
