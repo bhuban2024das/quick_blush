@@ -199,3 +199,19 @@ export const updateVendorLocation = async (req: any, res: Response) => {
         res.status(500).json({ message: "Error updating location", error });
     }
 };
+
+export const updateVendorFcmToken = async (req: any, res: Response) => {
+    try {
+        const vendorId = req.user.id;
+        const { fcmToken } = req.body;
+
+        if (!fcmToken) {
+            return res.status(400).json({ message: "fcmToken is required" });
+        }
+
+        await vendorRepo.update(vendorId, { fcmToken });
+        res.status(200).json({ message: "FCM token updated successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Error updating FCM token", error });
+    }
+};

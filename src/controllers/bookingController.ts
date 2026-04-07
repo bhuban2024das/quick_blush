@@ -8,6 +8,7 @@ import { Vendor, VendorStatus } from "../entities/Vendor";
 import { User } from "../entities/User";
 import { redisCache } from "../config/redis";
 import axios from "axios";
+import { firebaseService } from "../services/firebaseService";
 
 const bookingRepository = AppDataSource.getRepository(Booking);
 const serviceRepository = AppDataSource.getRepository(Service);
@@ -1148,7 +1149,7 @@ async function matchAndPingVendors(bookingId: string, io: any) {
             console.log(`[Matchmaking] Success! Found ${nearbyVendors.length} eligible vendors within 10km.`);
             console.log(`[Matchmaking] Matched Vendors: ${nearbyVendors.map(v => v.name).join(', ')}`);
             
-            // Broadcast the ping to Vendor Apps
+            // Broadcast the ping to Vendor Apps via Socket
             io.emit("vendor:new_job_alert", {
                 bookingId: booking.id,
                 serviceName: booking.service.name,
@@ -1157,6 +1158,13 @@ async function matchAndPingVendors(bookingId: string, io: any) {
                 address: booking.address,
                 assignedVendors: nearbyVendors.map(v => v.id) // App filters if their ID is in this array
             });
+
+            // Send Firebase High Priority Push Notifications to aggressively wake up the CallKit
+            for (const v of nearbyVendors) {
+                if (v.fcmToken) {
+                    firebaseService.sendJobAlert(v.fcmToken, booking.id, "Pending QuickBlush Job");
+                }
+            }
         } else {
             console.log(`[Matchmaking] Failed. No online, approved, and available vendors found within 10km for service ${booking.service.name}.`);
         }

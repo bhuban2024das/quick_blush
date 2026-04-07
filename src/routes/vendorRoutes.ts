@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerVendor, verifyVendorOtp, loginVendor, refreshVendorToken, getVendorProfile, updateVendorProfile, uploadVendorDocument, updateVendorLocation } from "../controllers/vendorController";
+import { registerVendor, verifyVendorOtp, loginVendor, refreshVendorToken, getVendorProfile, updateVendorProfile, uploadVendorDocument, updateVendorLocation, updateVendorFcmToken } from "../controllers/vendorController";
 import { authenticateJWT, authorizeRole } from "../middlewares/authMiddleware";
 import { validateRequest } from "../middlewares/validationMiddleware";
 import {
@@ -441,5 +441,30 @@ router.post("/earnings/payout", authenticateJWT, authorizeRole("VENDOR"), valida
  *         description: Location updated successfully
  */
 router.put("/location", authenticateJWT, authorizeRole("VENDOR"), validateRequest(updateVendorLocationSchema), updateVendorLocation);
+
+/**
+ * @swagger
+ * /api/vendors/fcm-token:
+ *   put:
+ *     summary: Update vendor FCM Token for push notifications
+ *     tags: [Vendors]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - fcmToken
+ *             properties:
+ *               fcmToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Notification token updated successfully
+ */
+router.put("/fcm-token", authenticateJWT, authorizeRole("VENDOR"), updateVendorFcmToken);
 
 export default router;

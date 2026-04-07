@@ -96,4 +96,7 @@ export class Vendor {
 
     @UpdateDateColumn()
     updatedAt!: Date;
+
+    @Column({ type: "varchar", length: 500, nullable: true })
+    fcmToken?: string;
 }
