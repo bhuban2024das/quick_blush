@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerVendor, verifyVendorOtp, loginVendor, refreshVendorToken, getVendorProfile, updateVendorProfile, uploadVendorDocument, updateVendorLocation, updateVendorFcmToken } from "../controllers/vendorController";
+import { registerVendor, verifyVendorOtp, loginVendor, sendVendorOtpLogin, loginVendorOtp, refreshVendorToken, getVendorProfile, updateVendorProfile, uploadVendorDocument, updateVendorLocation, updateVendorFcmToken } from "../controllers/vendorController";
 import { authenticateJWT, authorizeRole } from "../middlewares/authMiddleware";
 import { validateRequest } from "../middlewares/validationMiddleware";
 import {
@@ -96,7 +96,7 @@ router.post("/verify-otp", validateRequest(verifyOtpSchema), verifyVendorOtp);
  * @swagger
  * /api/vendors/login:
  *   post:
- *     summary: Vendor Login
+ *     summary: Vendor Login (Deprecated password-based)
  *     tags: [Vendors]
  *     requestBody:
  *       required: true
@@ -114,6 +114,55 @@ router.post("/verify-otp", validateRequest(verifyOtpSchema), verifyVendorOtp);
  *         description: Login successful — returns accessToken (1h) and refreshToken (30d)
  */
 router.post("/login", validateRequest(loginVendorSchema), loginVendor);
+
+/**
+ * @swagger
+ * /api/vendors/send-otp-login:
+ *   post:
+ *     summary: Send OTP for vendor login
+ *     tags: [Vendors]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - mobile
+ *             properties:
+ *               mobile:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: OTP Sent
+ */
+router.post("/send-otp-login", sendVendorOtpLogin);
+
+/**
+ * @swagger
+ * /api/vendors/login-with-otp:
+ *   post:
+ *     summary: Login vendor via OTP
+ *     tags: [Vendors]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - mobile
+ *               - otp
+ *             properties:
+ *               mobile:
+ *                 type: string
+ *               otp:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ */
+router.post("/login-with-otp", validateRequest(verifyOtpSchema), loginVendorOtp);
 
 /**
  * @swagger

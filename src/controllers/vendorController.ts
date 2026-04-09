@@ -104,6 +104,58 @@ export const loginVendor = async (req: Request, res: Response) => {
     }
 };
 
+export const sendVendorOtpLogin = async (req: Request, res: Response) => {
+    try {
+        const { mobile } = req.body;
+        
+        const vendor = await vendorRepo.findOneBy({ mobile });
+        if (!vendor) return res.status(404).json({ message: "No vendor registered with this mobile number." });
+
+        if (vendor.status === VendorStatus.REJECTED || vendor.status === VendorStatus.SUSPENDED) {
+            return res.status(403).json({ message: `Access denied. Vendor status: ${vendor.status}` });
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        console.log(`[VENDOR LOGIN] Generated OTP ${otp} for Vendor ${mobile}`);
+        
+        await smsService.sendOTP(mobile, otp);
+
+        res.status(200).json({ message: "OTP sent successfully." });
+    } catch (error) {
+        res.status(500).json({ message: "Error sending OTP", error });
+    }
+};
+
+export const loginVendorOtp = async (req: Request, res: Response) => {
+    try {
+        const { mobile, otp } = req.body;
+        
+        const vendor = await vendorRepo.findOne({
+            where: { mobile },
+            relations: ["serviceCategories", "subscriptions"]
+        });
+        if (!vendor) return res.status(404).json({ message: "Vendor not found." });
+
+        const isVerified = await smsService.verifyOTP(mobile, otp);
+        if (!isVerified) return res.status(400).json({ message: "Invalid or expired OTP." });
+
+        if (vendor.status === VendorStatus.REJECTED || vendor.status === VendorStatus.SUSPENDED) {
+            return res.status(403).json({ message: `Access denied. Vendor status: ${vendor.status}` });
+        }
+
+        // Generate Tokens
+        const { accessToken, refreshToken } = generateTokens(vendor.id, "VENDOR");
+
+        vendor.refreshToken = refreshToken;
+        await vendorRepo.save(vendor);
+
+        res.status(200).json({ message: "Login successful", accessToken, refreshToken, vendor });
+    } catch (error) {
+        res.status(500).json({ message: "Login failed", error });
+    }
+};
+
+
 export const refreshVendorToken = async (req: Request, res: Response) => {
     try {
         const { refreshToken: token } = req.body;

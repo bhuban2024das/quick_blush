@@ -19,4 +19,5 @@ var PaymentStatus;
     PaymentStatus["PAID"] = "PAID";
     PaymentStatus["FAILED"] = "FAILED";
     PaymentStatus["REFUNDED"] = "REFUNDED";
+    PaymentStatus["PAY_AFTER_SERVICE"] = "PAY_AFTER_SERVICE";
 })(PaymentStatus || (exports.PaymentStatus = PaymentStatus = {}));

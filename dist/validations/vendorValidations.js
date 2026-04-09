@@ -39,7 +39,7 @@ exports.purchaseSubscriptionSchema = joi_1.default.object({
     planId: joi_1.default.number().integer().required()
 });
 exports.jobStatusSchema = joi_1.default.object({
-    status: joi_1.default.string().valid("EN_ROUTE", "IN_PROGRESS", "COMPLETED").required()
+    status: joi_1.default.string().valid("VENDOR_ENROUTE", "ARRIVED", "IN_PROGRESS", "SERVICE_ENDED", "COMPLETED").required()
 });
 exports.payoutRequestSchema = joi_1.default.object({
     amount: joi_1.default.number().positive().required()

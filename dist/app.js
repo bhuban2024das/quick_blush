@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
+const path_1 = __importDefault(require("path"));
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 // Routes Import
 const routes_1 = __importDefault(require("./routes"));
@@ -41,7 +42,10 @@ const swaggerOptions = {
             },
         },
     },
-    apis: ["./src/routes/*.ts"],
+    apis: [
+        path_1.default.join(__dirname, "routes/*.ts"),
+        path_1.default.join(__dirname, "routes/*.js"),
+    ],
 };
 const swaggerDocs = (0, swagger_jsdoc_1.default)(swaggerOptions);
 app.use("/docs", swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swaggerDocs));

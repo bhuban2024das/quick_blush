@@ -33,6 +33,8 @@ let Booking = class Booking {
     lat;
     lng;
     address;
+    addressDetails;
+    contactNumber;
     customerNotes;
     addons;
     timeline;
@@ -92,6 +94,14 @@ __decorate([
     (0, typeorm_1.Column)({ type: "text" }),
     __metadata("design:type", String)
 ], Booking.prototype, "address", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "jsonb", nullable: true }),
+    __metadata("design:type", Object)
+], Booking.prototype, "addressDetails", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", length: 20, nullable: true }),
+    __metadata("design:type", String)
+], Booking.prototype, "contactNumber", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "text", nullable: true }),
     __metadata("design:type", String)

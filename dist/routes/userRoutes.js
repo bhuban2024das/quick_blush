@@ -93,6 +93,35 @@ router.post("/profile/upload-photo", authMiddleware_1.authenticateJWT, (0, authM
 router.delete("/profile/delete", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("USER"));
 /**
  * @swagger
+ * /api/users/membership/subscribe:
+ *   post:
+ *     summary: Upgrade the user to an Elite Membership
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully upgraded to Elite Membership
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 isElite:
+ *                   type: boolean
+ *                 eliteExpiryDate:
+ *                   type: string
+ *                   format: date-time
+ *                 qbCoins:
+ *                   type: integer
+ *       404:
+ *         description: User not found
+ */
+router.post("/membership/subscribe", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("USER"), userController_1.subscribeMembership);
+/**
+ * @swagger
  * tags:
  *   name: Address
  *   description: Address Management for Users

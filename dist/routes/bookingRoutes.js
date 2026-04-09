@@ -82,26 +82,6 @@ router.post("/create", bookingController_1.createBooking);
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - serviceId
- *               - address
- *               - lat
- *               - lng
- *             properties:
- *               serviceId:
- *                 type: string
- *               address:
- *                 type: string
- *               lat:
- *                 type: number
- *               lng:
- *                 type: number
- *               customerNotes:
- *                 type: string
- *               addons:
- *                 type: array
- *                 items:
- *                   type: object
  *                   properties:
  *                     name:
  *                       type: string
@@ -249,6 +229,27 @@ router.get("/customer-notes", bookingController_1.getCustomerNotes);
 router.get("/vendor-location", bookingController_1.getVendorLocation);
 /**
  * @swagger
+ * /api/bookings/{bookingId}/route-eta:
+ *   get:
+ *     summary: Render the mathematical Map Route and ETA for the flutter application
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: bookingId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Encoded Polyline string and ETA cache.
+ *       400:
+ *         description: Missing coordinates or API Error.
+ */
+router.get("/:bookingId/route-eta", bookingController_1.getRouteAndETA);
+/**
+ * @swagger
  * /api/bookings/invoice:
  *   get:
  *     summary: Generate a detailed invoice for a completed booking
@@ -310,6 +311,9 @@ router.get("/:id", bookingController_1.getBookingById); // Full Details
  *                 type: string
  *               transactionId:
  *                 type: string
+ *               paymentMethod:
+ *                 type: string
+ *                 description: PAY_NOW or PAY_AFTER_SERVICE
  *     responses:
  *       200:
  *         description: Booking confirmed
@@ -379,6 +383,35 @@ router.post("/cancel", bookingController_1.cancelBooking);
  *         description: Cannot reschedule booking in its current state
  */
 router.post("/reschedule", bookingController_1.rescheduleBooking);
+/**
+ * @swagger
+ * /api/bookings/address:
+ *   post:
+ *     summary: Update an active booking's address
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - bookingId
+ *               - newAddress
+ *             properties:
+ *               bookingId:
+ *                 type: string
+ *               newAddress:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Address updated successfully
+ *       400:
+ *         description: Cannot update address in current state
+ */
+router.post("/address", bookingController_1.updateBookingAddress);
 /**
  * @swagger
  * /api/bookings/reassign-vendor:

@@ -22,6 +22,9 @@ let User = class User {
     isVerified;
     refreshToken;
     addressBook; // e.g. [{ address: '...', pincode: '...' }]
+    isElite;
+    eliteExpiryDate;
+    qbCoins;
     walletBalance;
     createdAt;
     updatedAt;
@@ -67,6 +70,18 @@ __decorate([
     (0, typeorm_1.Column)({ type: "jsonb", nullable: true }),
     __metadata("design:type", Object)
 ], User.prototype, "addressBook", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "boolean", default: false }),
+    __metadata("design:type", Boolean)
+], User.prototype, "isElite", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "timestamp", nullable: true }),
+    __metadata("design:type", Date)
+], User.prototype, "eliteExpiryDate", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "int", default: 0 }),
+    __metadata("design:type", Number)
+], User.prototype, "qbCoins", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "decimal", precision: 10, scale: 2, default: 0 }),
     __metadata("design:type", Number)

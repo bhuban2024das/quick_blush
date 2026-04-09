@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateVendorLocation = exports.uploadVendorDocument = exports.updateVendorProfile = exports.getVendorProfile = exports.refreshVendorToken = exports.loginVendor = exports.verifyVendorOtp = exports.registerVendor = void 0;
+exports.updateVendorFcmToken = exports.updateVendorLocation = exports.uploadVendorDocument = exports.updateVendorProfile = exports.getVendorProfile = exports.refreshVendorToken = exports.loginVendor = exports.verifyVendorOtp = exports.registerVendor = void 0;
 const data_source_1 = require("../config/data-source");
 const Vendor_1 = require("../entities/Vendor");
 const ServiceCategory_1 = require("../entities/ServiceCategory");
@@ -192,3 +192,18 @@ const updateVendorLocation = async (req, res) => {
     }
 };
 exports.updateVendorLocation = updateVendorLocation;
+const updateVendorFcmToken = async (req, res) => {
+    try {
+        const vendorId = req.user.id;
+        const { fcmToken } = req.body;
+        if (!fcmToken) {
+            return res.status(400).json({ message: "fcmToken is required" });
+        }
+        await vendorRepo.update(vendorId, { fcmToken });
+        res.status(200).json({ message: "FCM token updated successfully" });
+    }
+    catch (error) {
+        res.status(500).json({ message: "Error updating FCM token", error });
+    }
+};
+exports.updateVendorFcmToken = updateVendorFcmToken;

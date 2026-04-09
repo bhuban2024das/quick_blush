@@ -239,6 +239,21 @@ router.post("/subscription/purchase", authMiddleware_1.authenticateJWT, (0, auth
 router.get("/jobs/pending", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("VENDOR"), vendorJobController_1.getPendingJobs);
 /**
  * @swagger
+ * /api/vendors/jobs/history:
+ *   get:
+ *     summary: Get all completed/cancelled jobs for vendor
+ *     tags: [Vendors]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of historical bookings
+ *       500:
+ *         description: Error fetching history
+ */
+router.get("/jobs/history", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("VENDOR"), vendorJobController_1.getVendorJobHistory);
+/**
+ * @swagger
  * /api/vendors/jobs/{bookingId}/accept:
  *   post:
  *     summary: Accept a pending job
@@ -275,6 +290,34 @@ router.post("/jobs/:bookingId/accept", authMiddleware_1.authenticateJWT, (0, aut
  *         description: Job rejected
  */
 router.post("/jobs/:bookingId/reject", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("VENDOR"), vendorJobController_1.rejectJob);
+/**
+ * @swagger
+ * /api/vendors/jobs/{bookingId}/confirm-payment:
+ *   post:
+ *     summary: Confirm cash/QR payment for PAY_AFTER_SERVICE
+ *     tags: [Vendors]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: bookingId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               method:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Payment confirmed
+ */
+router.post("/jobs/:bookingId/confirm-payment", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("VENDOR"), vendorJobController_1.confirmPayment);
 /**
  * @swagger
  * /api/vendors/jobs/{bookingId}/status:
@@ -367,4 +410,28 @@ router.post("/earnings/payout", authMiddleware_1.authenticateJWT, (0, authMiddle
  *         description: Location updated successfully
  */
 router.put("/location", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("VENDOR"), (0, validationMiddleware_1.validateRequest)(vendorValidations_1.updateVendorLocationSchema), vendorController_1.updateVendorLocation);
+/**
+ * @swagger
+ * /api/vendors/fcm-token:
+ *   put:
+ *     summary: Update vendor FCM Token for push notifications
+ *     tags: [Vendors]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - fcmToken
+ *             properties:
+ *               fcmToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Notification token updated successfully
+ */
+router.put("/fcm-token", authMiddleware_1.authenticateJWT, (0, authMiddleware_1.authorizeRole)("VENDOR"), vendorController_1.updateVendorFcmToken);
 exports.default = router;

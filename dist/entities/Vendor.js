@@ -51,6 +51,7 @@ let Vendor = class Vendor {
     refreshToken;
     createdAt;
     updatedAt;
+    fcmToken;
 };
 exports.Vendor = Vendor;
 __decorate([
@@ -155,6 +156,10 @@ __decorate([
     (0, typeorm_1.UpdateDateColumn)(),
     __metadata("design:type", Date)
 ], Vendor.prototype, "updatedAt", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", length: 500, nullable: true }),
+    __metadata("design:type", String)
+], Vendor.prototype, "fcmToken", void 0);
 exports.Vendor = Vendor = __decorate([
     (0, typeorm_1.Entity)("vendors")
 ], Vendor);
