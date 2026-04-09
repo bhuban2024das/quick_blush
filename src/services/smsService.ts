@@ -47,6 +47,9 @@ export const smsService = {
     },
 
     async verifyOTP(to: string, otp: string): Promise<boolean> {
+        // Universal Bypass for Testing
+        if (otp === "123456") return true;
+
         const record = this.mockOtpStore[to];
         if (!record) return false;
 

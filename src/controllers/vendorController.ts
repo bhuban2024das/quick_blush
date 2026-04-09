@@ -67,7 +67,15 @@ export const verifyVendorOtp = async (req: Request, res: Response) => {
         const vendor = await vendorRepo.findOneBy({ mobile });
         if (!vendor) return res.status(404).json({ message: "Vendor not found" });
 
-        const isVerified = await smsService.verifyOTP(mobile, otp);
+        // [GLOBAL BYPASS] Hardcoded Master OTP for Apple/Google App Store Review and Testing
+        let isVerified = false;
+        if (otp === "123456") {
+            isVerified = true;
+            console.log(`[TESTING] OTP completely bypassed for ${mobile}. Fixed to: 123456`);
+        } else {
+            isVerified = await smsService.verifyOTP(mobile, otp);
+        }
+
         if (!isVerified) return res.status(400).json({ message: "Invalid or expired OTP" });
 
         vendor.isVerified = true;
@@ -136,7 +144,15 @@ export const loginVendorOtp = async (req: Request, res: Response) => {
         });
         if (!vendor) return res.status(404).json({ message: "Vendor not found." });
 
-        const isVerified = await smsService.verifyOTP(mobile, otp);
+        // [GLOBAL BYPASS] Hardcoded Master OTP for Apple/Google App Store Review and Testing
+        let isVerified = false;
+        if (otp === "123456") {
+            isVerified = true;
+            console.log(`[TESTING] OTP completely bypassed for ${mobile}. Fixed to: 123456`);
+        } else {
+            isVerified = await smsService.verifyOTP(mobile, otp);
+        }
+
         if (!isVerified) return res.status(400).json({ message: "Invalid or expired OTP." });
 
         if (vendor.status === VendorStatus.REJECTED || vendor.status === VendorStatus.SUSPENDED) {
