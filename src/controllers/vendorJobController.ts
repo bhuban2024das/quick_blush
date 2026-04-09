@@ -86,6 +86,13 @@ export const acceptJob = async (req: any, res: Response) => {
                 status: booking.status,
                 vendor: vendor
             });
+
+            // [COMPETITIVE CUT] Instantly tell ALL other ringing Vendor Apps that the race is over and they lost!
+            io.emit("vendor:job_resolved", {
+                bookingId: booking.id,
+                reason: "ACCEPTED_BY_OTHER_VENDOR",
+                acceptedByVendorId: vendor.id
+            });
         }
 
         res.status(200).json({ message: "Job accepted", booking });

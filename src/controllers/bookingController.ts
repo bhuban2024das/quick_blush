@@ -1165,6 +1165,25 @@ async function matchAndPingVendors(bookingId: string, io: any) {
                     firebaseService.sendJobAlert(v.fcmToken, booking.id, "Pending QuickBlush Job");
                 }
             }
+
+            // [AUTO-RING CANCELLATION] If nobody accepts the job within 60 seconds, cut the rings globally!
+            setTimeout(async () => {
+                try {
+                    const checkBooking = await AppDataSource.getRepository(Booking).findOne({
+                        where: { id: booking.id },
+                        relations: ["vendor"]
+                    });
+                    
+                    // If it is STILL confirmed and NO vendor picked it up, cut the call screen!
+                    if (checkBooking && checkBooking.status === BookingStatus.CONFIRMED && !checkBooking.vendor) {
+                        console.log(`[Wait Time Expired] Booking ${booking.id} was not grabbed in 60s. Cutting CallKits.`);
+                        io.emit("vendor:job_resolved", { bookingId: booking.id, reason: "TIMEOUT" });
+                    }
+                } catch (e) {
+                    console.error("Timeout resolution crashed:", e);
+                }
+            }, 60000);
+
         } else {
             console.log(`[Matchmaking] Failed. No online, approved, and available vendors found within 10km for service ${booking.service.name}.`);
         }
