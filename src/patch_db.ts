@@ -1,4 +1,4 @@
-import { AppDataSource } from "./src/config/data-source";
+import { AppDataSource } from "./config/data-source";
 
 async function patchDatabase() {
     try {
