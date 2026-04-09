@@ -10,7 +10,7 @@ try {
         });
         console.log("[FCM] Firebase loaded securely using local JSON Admin Key!");
     } else {
-        admin.initializeApp(); // Fallback
+        console.error("[FCM WARNING] firebase-admin.json is completely missing! Push notifications are disabled.");
     }
 } catch (e) {
     console.warn("Firebase Admin Initialization missing Credentials. FCM pushes will fail natively.");
