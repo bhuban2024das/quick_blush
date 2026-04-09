@@ -2,12 +2,15 @@ import * as admin from 'firebase-admin';
 import * as fs from 'fs';
 import * as path from 'path';
 
+let isFirebaseReady = false;
+
 try {
     const keyPath = path.resolve(__dirname, "../../firebase-admin.json");
     if (fs.existsSync(keyPath)) {
         admin.initializeApp({
             credential: admin.credential.cert(require(keyPath))
         });
+        isFirebaseReady = true;
         console.log("[FCM] Firebase loaded securely using local JSON Admin Key!");
     } else {
         console.error("[FCM WARNING] firebase-admin.json is completely missing! Push notifications are disabled.");
@@ -21,6 +24,10 @@ export const firebaseService = {
      * Send a High Priority push notification to trigger CallKit natively.
      */
     async sendJobAlert(fcmToken: string, bookingId: string, customerName: string) {
+        if (!isFirebaseReady) {
+            console.log("[FCM] Suppression triggered: Cannot alert vendor because Firebase is missing.");
+            return;
+        }
         if (!fcmToken) return;
 
         const message = {
