@@ -114,11 +114,15 @@ router.post("/create", createBooking);
  *         application/json:
  *           schema:
  *             type: object
- *                   properties:
- *                     name:
- *                       type: string
- *                     price:
- *                       type: number
+ *             properties:
+ *               serviceId:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               lat:
+ *                 type: number
+ *               lng:
+ *                 type: number
  *     responses:
  *       201:
  *         description: Instant Booking initialized in PENDING_PAYMENT state
