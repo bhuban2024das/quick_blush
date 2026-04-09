@@ -140,7 +140,7 @@ export const loginVendorOtp = async (req: Request, res: Response) => {
         
         const vendor = await vendorRepo.findOne({
             where: { mobile },
-            relations: ["serviceCategories", "subscriptions"]
+            relations: ["serviceCategories"]
         });
         if (!vendor) return res.status(404).json({ message: "Vendor not found." });
 
