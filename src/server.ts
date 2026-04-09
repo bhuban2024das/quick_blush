@@ -46,9 +46,12 @@ async function bootstrap() {
             await AppDataSource.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS "isElite" BOOLEAN DEFAULT false;`);
             await AppDataSource.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS "eliteExpiryDate" TIMESTAMP;`);
             await AppDataSource.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS "qbCoins" INT DEFAULT 0;`);
-            console.log("✅ Verified Elite Membership schema in Database");
+            
+            // [HOTFIX] Explicitly inject fcmToken to prevent 500 crashes on Vendor queries
+            await AppDataSource.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS "fcmToken" VARCHAR(500);`);
+            console.log("✅ Verified Elite & FCM schema in Database");
         } catch(e) {
-            console.error("⚠️ Could not patch Elite Membership columns:", e);
+            console.error("⚠️ Could not patch Elite/FCM columns:", e);
         }
 
         // Create HTTP Server
