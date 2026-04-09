@@ -23,7 +23,14 @@ export const firebaseService = {
     /**
      * Send a High Priority push notification to trigger CallKit natively.
      */
-    async sendJobAlert(fcmToken: string, bookingId: string, customerName: string) {
+    async sendJobAlert(
+        fcmToken: string, 
+        bookingId: string, 
+        serviceName: string, 
+        address: string, 
+        amount: string, 
+        scheduledAt: string
+    ) {
         if (!isFirebaseReady) {
             console.log("[FCM] Suppression triggered: Cannot alert vendor because Firebase is missing.");
             return;
@@ -35,7 +42,10 @@ export const firebaseService = {
             data: {
                 type: 'JOB_ALERT',
                 jobId: bookingId,
-                customerName: customerName
+                serviceName: serviceName,
+                address: address,
+                amount: amount,
+                scheduledAt: scheduledAt
             },
             android: {
                 priority: "high" as const
