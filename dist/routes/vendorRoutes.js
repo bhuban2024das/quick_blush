@@ -83,7 +83,7 @@ router.post("/verify-otp", (0, validationMiddleware_1.validateRequest)(vendorVal
  * @swagger
  * /api/vendors/login:
  *   post:
- *     summary: Vendor Login
+ *     summary: Vendor Login (Deprecated password-based)
  *     tags: [Vendors]
  *     requestBody:
  *       required: true
@@ -101,6 +101,53 @@ router.post("/verify-otp", (0, validationMiddleware_1.validateRequest)(vendorVal
  *         description: Login successful — returns accessToken (1h) and refreshToken (30d)
  */
 router.post("/login", (0, validationMiddleware_1.validateRequest)(vendorValidations_1.loginVendorSchema), vendorController_1.loginVendor);
+/**
+ * @swagger
+ * /api/vendors/send-otp-login:
+ *   post:
+ *     summary: Send OTP for vendor login
+ *     tags: [Vendors]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - mobile
+ *             properties:
+ *               mobile:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: OTP Sent
+ */
+router.post("/send-otp-login", vendorController_1.sendVendorOtpLogin);
+/**
+ * @swagger
+ * /api/vendors/login-with-otp:
+ *   post:
+ *     summary: Login vendor via OTP
+ *     tags: [Vendors]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - mobile
+ *               - otp
+ *             properties:
+ *               mobile:
+ *                 type: string
+ *               otp:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ */
+router.post("/login-with-otp", (0, validationMiddleware_1.validateRequest)(vendorValidations_1.verifyOtpSchema), vendorController_1.loginVendorOtp);
 /**
  * @swagger
  * /api/vendors/refresh-token:

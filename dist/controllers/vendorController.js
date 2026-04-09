@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateVendorFcmToken = exports.updateVendorLocation = exports.uploadVendorDocument = exports.updateVendorProfile = exports.getVendorProfile = exports.refreshVendorToken = exports.loginVendor = exports.verifyVendorOtp = exports.registerVendor = void 0;
+exports.updateVendorFcmToken = exports.updateVendorLocation = exports.uploadVendorDocument = exports.updateVendorProfile = exports.getVendorProfile = exports.refreshVendorToken = exports.loginVendorOtp = exports.sendVendorOtpLogin = exports.loginVendor = exports.verifyVendorOtp = exports.registerVendor = void 0;
 const data_source_1 = require("../config/data-source");
 const Vendor_1 = require("../entities/Vendor");
 const ServiceCategory_1 = require("../entities/ServiceCategory");
@@ -61,7 +61,15 @@ const verifyVendorOtp = async (req, res) => {
         const vendor = await vendorRepo.findOneBy({ mobile });
         if (!vendor)
             return res.status(404).json({ message: "Vendor not found" });
-        const isVerified = await smsService_1.smsService.verifyOTP(mobile, otp);
+        // [GLOBAL BYPASS] Hardcoded Master OTP for Apple/Google App Store Review and Testing
+        let isVerified = false;
+        if (otp === "123456") {
+            isVerified = true;
+            console.log(`[TESTING] OTP completely bypassed for ${mobile}. Fixed to: 123456`);
+        }
+        else {
+            isVerified = await smsService_1.smsService.verifyOTP(mobile, otp);
+        }
         if (!isVerified)
             return res.status(400).json({ message: "Invalid or expired OTP" });
         vendor.isVerified = true;
@@ -95,6 +103,59 @@ const loginVendor = async (req, res) => {
     }
 };
 exports.loginVendor = loginVendor;
+const sendVendorOtpLogin = async (req, res) => {
+    try {
+        const { mobile } = req.body;
+        const vendor = await vendorRepo.findOneBy({ mobile });
+        if (!vendor)
+            return res.status(404).json({ message: "No vendor registered with this mobile number." });
+        if (vendor.status === Vendor_1.VendorStatus.REJECTED || vendor.status === Vendor_1.VendorStatus.SUSPENDED) {
+            return res.status(403).json({ message: `Access denied. Vendor status: ${vendor.status}` });
+        }
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        console.log(`[VENDOR LOGIN] Generated OTP ${otp} for Vendor ${mobile}`);
+        await smsService_1.smsService.sendOTP(mobile, otp);
+        res.status(200).json({ message: "OTP sent successfully." });
+    }
+    catch (error) {
+        res.status(500).json({ message: "Error sending OTP", error });
+    }
+};
+exports.sendVendorOtpLogin = sendVendorOtpLogin;
+const loginVendorOtp = async (req, res) => {
+    try {
+        const { mobile, otp } = req.body;
+        const vendor = await vendorRepo.findOne({
+            where: { mobile },
+            relations: ["serviceCategories"]
+        });
+        if (!vendor)
+            return res.status(404).json({ message: "Vendor not found." });
+        // [GLOBAL BYPASS] Hardcoded Master OTP for Apple/Google App Store Review and Testing
+        let isVerified = false;
+        if (otp === "123456") {
+            isVerified = true;
+            console.log(`[TESTING] OTP completely bypassed for ${mobile}. Fixed to: 123456`);
+        }
+        else {
+            isVerified = await smsService_1.smsService.verifyOTP(mobile, otp);
+        }
+        if (!isVerified)
+            return res.status(400).json({ message: "Invalid or expired OTP." });
+        if (vendor.status === Vendor_1.VendorStatus.REJECTED || vendor.status === Vendor_1.VendorStatus.SUSPENDED) {
+            return res.status(403).json({ message: `Access denied. Vendor status: ${vendor.status}` });
+        }
+        // Generate Tokens
+        const { accessToken, refreshToken } = generateTokens(vendor.id, "VENDOR");
+        vendor.refreshToken = refreshToken;
+        await vendorRepo.save(vendor);
+        res.status(200).json({ message: "Login successful", accessToken, refreshToken, vendor });
+    }
+    catch (error) {
+        res.status(500).json({ message: "Login failed", error });
+    }
+};
+exports.loginVendorOtp = loginVendorOtp;
 const refreshVendorToken = async (req, res) => {
     try {
         const { refreshToken: token } = req.body;

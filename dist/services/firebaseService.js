@@ -35,12 +35,22 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.firebaseService = void 0;
 const admin = __importStar(require("firebase-admin"));
-// Initialize Firebase Admin (will fail if not provided, but we can safely ignore in dev if not using FCM natively)
+const fs = __importStar(require("fs"));
+const path = __importStar(require("path"));
 try {
-    admin.initializeApp();
+    const keyPath = path.resolve(__dirname, "../../firebase-admin.json");
+    if (fs.existsSync(keyPath)) {
+        admin.initializeApp({
+            credential: admin.credential.cert(require(keyPath))
+        });
+        console.log("[FCM] Firebase loaded securely using local JSON Admin Key!");
+    }
+    else {
+        admin.initializeApp(); // Fallback
+    }
 }
 catch (e) {
-    console.warn("Firebase Admin Initialization missing GOOGLE_APPLICATION_CREDENTIALS. Push notifications may not work in development unless mocked.");
+    console.warn("Firebase Admin Initialization missing Credentials. FCM pushes will fail natively.");
 }
 exports.firebaseService = {
     /**
